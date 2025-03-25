@@ -144,34 +144,42 @@ defmodule GangWeb.GameLive do
     """
   end
 
-  defp color_classes(:white), do: "bg-white text-gray-900 border-gray-300"
-  defp color_classes(:yellow), do: "bg-yellow-300 text-yellow-800 border-yellow-500"
-  defp color_classes(:orange), do: "bg-orange-400 text-orange-900 border-orange-600"
-  defp color_classes(:red), do: "bg-red-500 text-white border-red-700"
+  defp color_classes(:white), do: "bg-ctp-surface0 text-ctp-text border-ctp-overlay0"
+  defp color_classes(:yellow), do: "bg-ctp-yellow text-ctp-base border-ctp-peach"
+  defp color_classes(:orange), do: "bg-ctp-peach text-ctp-base border-ctp-red"
+  defp color_classes(:red), do: "bg-ctp-red text-ctp-base border-ctp-maroon"
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto px-4 py-8 bg-ctp-base text-ctp-text min-h-screen">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Game #{@game_id}</h1>
-        <button phx-click="back_to_lobby">Back to Lobby</button>
+        <h1 class="text-3xl font-bold text-ctp-text">Game #{@game_id}</h1>
+        <button
+          class="px-4 py-2 rounded-lg bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-text transition-colors"
+          phx-click="back_to_lobby"
+        >
+          Back to Lobby
+        </button>
       </div>
 
       <%= if !@player do %>
-        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-8" role="alert">
+        <div
+          class="bg-ctp-yellow/20 border-l-4 border-ctp-yellow text-ctp-yellow p-4 mb-8 rounded-r-lg"
+          role="alert"
+        >
           <p>You are observing this game</p>
         </div>
       <% end %>
       
     <!-- Game Status -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
         <div class="flex justify-between items-center">
           <div>
-            <h2 class="text-xl font-semibold mb-2">Game Status</h2>
+            <h2 class="text-xl font-semibold mb-2 text-ctp-text">Game Status</h2>
             <div class="flex items-center space-x-2">
-              <span class="font-medium">Round:</span>
-              <span class="px-2 py-1 bg-gray-100 rounded-md">
+              <span class="font-medium text-ctp-subtext0">Round:</span>
+              <span class="px-2 py-1 bg-ctp-surface0 text-ctp-text rounded-md">
                 <%= case @game.round do %>
                   <% 1 -> %>
                     Starting Hands
@@ -187,12 +195,13 @@ defmodule GangWeb.GameLive do
               </span>
             </div>
             <div class="flex items-center space-x-2 mt-2">
-              <span class="font-medium">Vaults:</span>
+              <span class="font-medium text-ctp-subtext0">Vaults:</span>
               <div class="flex space-x-1">
                 <%= for i <- 1..3 do %>
                   <div class={[
                     "w-6 h-6 rounded-full flex items-center justify-center",
-                    (i <= @game.vaults && "bg-green-500 text-white") || "bg-gray-200"
+                    (i <= @game.vaults && "bg-ctp-green text-ctp-base") ||
+                      "bg-ctp-surface0 text-ctp-subtext0"
                   ]}>
                     <span class="text-xs">{i}</span>
                   </div>
@@ -200,12 +209,13 @@ defmodule GangWeb.GameLive do
               </div>
             </div>
             <div class="flex items-center space-x-2 mt-2">
-              <span class="font-medium">Alarms:</span>
+              <span class="font-medium text-ctp-subtext0">Alarms:</span>
               <div class="flex space-x-1">
                 <%= for i <- 1..3 do %>
                   <div class={[
                     "w-6 h-6 rounded-full flex items-center justify-center",
-                    (i <= @game.alarms && "bg-red-500 text-white") || "bg-gray-200"
+                    (i <= @game.alarms && "bg-ctp-red text-ctp-base") ||
+                      "bg-ctp-surface0 text-ctp-subtext0"
                   ]}>
                     <span class="text-xs">{i}</span>
                   </div>
@@ -216,19 +226,30 @@ defmodule GangWeb.GameLive do
 
           <div>
             <%= if @game.status == :waiting && @player && length(@game.players) >= 3 do %>
-              <.button phx-click="start_game">Start Game</.button>
+              <button
+                class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
+                phx-click="start_game"
+              >
+                Start Game
+              </button>
             <% end %>
 
             <%= if @game.status == :playing && @player do %>
               <%= if @game.current_phase == :rank_chip_selection && @game.all_rank_chips_claimed? do %>
                 <%= if @game.round < 4 do %>
-                  <.button phx-click="continue" class="bg-blue-600 hover:bg-blue-700">
+                  <button
+                    class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
+                    phx-click="continue"
+                  >
                     Next Round
-                  </.button>
+                  </button>
                 <% else %>
-                  <.button phx-click="continue" class="bg-purple-600 hover:bg-purple-700">
+                  <button
+                    class="px-4 py-2 rounded-lg bg-ctp-mauve hover:bg-ctp-pink text-ctp-base font-medium transition-colors"
+                    phx-click="continue"
+                  >
                     End Round
-                  </.button>
+                  </button>
                 <% end %>
               <% end %>
             <% end %>
@@ -240,14 +261,14 @@ defmodule GangWeb.GameLive do
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <%= for player <- @game.players do %>
           <div class={[
-            "bg-white rounded-lg shadow-md p-4",
-            player.name == @player_name && "border-2 border-indigo-500"
+            "bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-4",
+            player.name == @player_name && "ring-2 ring-ctp-lavender"
           ]}>
             <div class="flex justify-between items-center mb-2">
-              <h3 class="text-lg font-medium">{player.name}</h3>
+              <h3 class="text-lg font-medium text-ctp-text">{player.name}</h3>
               <span class={[
                 "px-2 py-1 text-xs rounded-full",
-                (player.connected && "bg-green-100 text-green-800") || "bg-red-100 text-red-800"
+                (player.connected && "bg-ctp-green/20 text-ctp-green") || "bg-ctp-red/20 text-ctp-red"
               ]}>
                 {if player.connected, do: "Online", else: "Offline"}
               </span>
@@ -256,7 +277,7 @@ defmodule GangWeb.GameLive do
             <%= if @game.status == :playing do %>
               <!-- Player's Rank Chips -->
               <div class="mb-2">
-                <span class="text-sm text-gray-500">Rank Chips:</span>
+                <span class="text-sm text-ctp-subtext0">Rank Chips:</span>
                 <div class="flex flex-wrap gap-1 mt-1">
                   <%= for color <- [:white, :yellow, :orange, :red] do %>
                     <%= if player_chip = Enum.find(player.rank_chips, &(&1.color == color)) do %>
@@ -265,29 +286,29 @@ defmodule GangWeb.GameLive do
                         phx-value-rank={player_chip.rank}
                         phx-value-color={color}
                         class={[
-                          "w-8 h-8 rounded-full flex items-center justify-center font-bold border",
+                          "w-8 h-8 rounded-full flex items-center justify-center font-bold border transition-colors",
                           case color do
-                            :white -> "bg-white border-gray-400 text-gray-800"
-                            :yellow -> "bg-yellow-200 border-yellow-400 text-yellow-800"
-                            :orange -> "bg-orange-200 border-orange-400 text-orange-800"
-                            :red -> "bg-red-200 border-red-400 text-red-800"
+                            :white -> "bg-ctp-surface0 border-ctp-overlay0 text-ctp-text"
+                            :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
+                            :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
+                            :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
                           end
                         ]}
                       >
                         {player_chip.rank}
                       </div>
                     <% else %>
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center border border-dashed border-gray-300">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center border border-dashed border-ctp-overlay0">
                       </div>
                     <% end %>
                   <% end %>
                 </div>
               </div>
               
-    <!-- Player's Cards (only shown to the current player or in game over) -->
+    <!-- Player's Cards -->
               <%= if @game.round == 5 || player.name == @player_name do %>
                 <div class="mt-3">
-                  <span class="text-sm text-gray-500">Cards:</span>
+                  <span class="text-sm text-ctp-subtext0">Cards:</span>
                   <div class="flex space-x-2 mt-1">
                     <%= for card <- player.cards do %>
                       <.card card={card} />
@@ -302,16 +323,16 @@ defmodule GangWeb.GameLive do
       
     <!-- Main Game Area -->
       <%= if @game.status == :playing do %>
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 class="text-xl font-semibold mb-4">Community Cards</h2>
+        <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
+          <h2 class="text-xl font-semibold mb-4 text-ctp-text">Community Cards</h2>
 
           <%= if @game.round == 1 && Enum.all?(@game.community_cards, &is_nil/1) do %>
             <%= if @game.vaults > 0 || @game.alarms > 0 do %>
               <div class={[
                 "mb-4 p-3 rounded-md",
                 if(@game.vaults > @game.alarms,
-                  do: "bg-green-100 text-green-800",
-                  else: "bg-red-100 text-red-800"
+                  do: "bg-ctp-green/20 text-ctp-green",
+                  else: "bg-ctp-red/20 text-ctp-red"
                 )
               ]}>
                 <p class="font-semibold">
@@ -323,7 +344,7 @@ defmodule GangWeb.GameLive do
                       do: "s"}.
                   <% end %>
                 </p>
-                <p class="text-sm mt-1">
+                <p class="text-sm mt-1 opacity-90">
                   Starting a new hand. Select your rank chips for this round.
                 </p>
               </div>
@@ -335,7 +356,7 @@ defmodule GangWeb.GameLive do
               <%= if card do %>
                 <.card card={card} />
               <% else %>
-                <div class="w-16 h-24 bg-gray-200 rounded-md flex items-center justify-center shadow-sm">
+                <div class="w-16 h-24 bg-ctp-surface0 rounded-md flex items-center justify-center shadow-sm text-ctp-subtext0">
                   {idx + 1}
                 </div>
               <% end %>
@@ -345,20 +366,26 @@ defmodule GangWeb.GameLive do
         
     <!-- Current Round Rank Chips -->
         <%= if @game.current_phase == :rank_chip_selection do %>
-          <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
             <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-semibold">Available Rank Chips</h2>
+              <h2 class="text-xl font-semibold text-ctp-text">Available Rank Chips</h2>
               <div class="space-x-2">
                 <%= if @player && @selected_rank_chip do %>
-                  <.button phx-click="claim_chip" class="bg-green-600 hover:bg-green-700">
+                  <button
+                    class="px-4 py-2 rounded-lg bg-ctp-green hover:bg-ctp-teal text-ctp-base font-medium transition-colors"
+                    phx-click="claim_chip"
+                  >
                     Claim Rank Chip {@selected_rank_chip.rank}
-                  </.button>
+                  </button>
                 <% end %>
 
                 <%= if @player && Enum.any?(@player.rank_chips, &(&1.color == @game.current_round_color)) do %>
-                  <.button phx-click="return_chip" class="bg-red-600 hover:bg-red-700">
+                  <button
+                    class="px-4 py-2 rounded-lg bg-ctp-red hover:bg-ctp-maroon text-ctp-base font-medium transition-colors"
+                    phx-click="return_chip"
+                  >
                     Return My Chip
-                  </.button>
+                  </button>
                 <% end %>
               </div>
             </div>
@@ -403,18 +430,18 @@ defmodule GangWeb.GameLive do
                     phx-value-player={claimed_by}
                     disabled={(claimed && !can_claim_from_other) || !@player}
                     class={[
-                      "w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl border",
+                      "w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl border transition-colors",
                       @selected_rank_chip && @selected_rank_chip.rank == rank &&
-                        "ring-2 ring-indigo-500 ring-offset-2",
+                        "ring-2 ring-ctp-lavender ring-offset-2 ring-offset-ctp-base",
                       case current_color do
-                        :white -> "bg-white border-gray-400 text-gray-800"
-                        :yellow -> "bg-yellow-200 border-yellow-400 text-yellow-800"
-                        :orange -> "bg-orange-200 border-orange-400 text-orange-800"
-                        :red -> "bg-red-200 border-red-400 text-red-800"
+                        :white -> "bg-ctp-surface0 border-ctp-overlay0 text-ctp-text"
+                        :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
+                        :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
+                        :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
                       end,
                       claimed && !can_claim_from_other && "opacity-50 cursor-not-allowed",
                       !@player && "opacity-50 cursor-not-allowed",
-                      can_claim_from_other && "hover:brightness-110 border-blue-500 border-2"
+                      can_claim_from_other && "hover:brightness-110 border-ctp-blue border-2"
                     ]}
                     title={if can_claim_from_other, do: "Claim from #{claimed_by}", else: nil}
                   >
@@ -422,7 +449,7 @@ defmodule GangWeb.GameLive do
                   </button>
                   <%= if claimed_by && claimed_by != @player_name do %>
                     <div
-                      class="absolute -top-2 -right-2 bg-indigo-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                      class="absolute -top-2 -right-2 bg-ctp-lavender text-ctp-base text-xs rounded-full w-5 h-5 flex items-center justify-center"
                       title={"Claimed by #{claimed_by}"}
                     >
                       {String.first(claimed_by)}
@@ -435,13 +462,14 @@ defmodule GangWeb.GameLive do
         <% end %>
       <% else %>
         <!-- Waiting for players -->
-        <div class="bg-white rounded-lg shadow-md p-6 text-center">
-          <h2 class="text-xl font-semibold mb-4">Waiting for Players</h2>
-          <p class="mb-4">
-            Share this game code with your friends: <span class="font-bold">{@game_id}</span>
+        <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 text-center">
+          <h2 class="text-xl font-semibold mb-4 text-ctp-text">Waiting for Players</h2>
+          <p class="mb-4 text-ctp-text">
+            Share this game code with your friends:
+            <span class="font-bold text-ctp-mauve">{@game_id}</span>
           </p>
-          <p class="text-sm text-gray-500 mb-2">Players joined: {length(@game.players)}/6</p>
-          <p class="text-sm text-gray-500">
+          <p class="text-sm text-ctp-subtext0 mb-2">Players joined: {length(@game.players)}/6</p>
+          <p class="text-sm text-ctp-subtext1">
             <%= if length(@game.players) < 3 do %>
               Need at least {3 - length(@game.players)} more player(s) to start.
             <% else %>
@@ -460,12 +488,12 @@ defmodule GangWeb.GameLive do
   def card(assigns) do
     ~H"""
     <div class={[
-      "w-16 h-24 rounded-md flex flex-col items-center justify-center font-bold shadow border border-gray-200",
+      "w-16 h-24 rounded-md flex flex-col items-center justify-center font-bold shadow-md border transition-colors",
       case @card.suit do
-        :hearts -> "bg-white text-red-600"
-        :diamonds -> "bg-white text-red-600"
-        :clubs -> "bg-white text-black"
-        :spades -> "bg-white text-black"
+        :hearts -> "bg-ctp-mantle text-ctp-red border-ctp-surface0"
+        :diamonds -> "bg-ctp-mantle text-ctp-red border-ctp-surface0"
+        :clubs -> "bg-ctp-mantle text-ctp-text border-ctp-surface0"
+        :spades -> "bg-ctp-mantle text-ctp-text border-ctp-surface0"
       end
     ]}>
       <div class="text-lg">
