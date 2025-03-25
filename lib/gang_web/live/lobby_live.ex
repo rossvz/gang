@@ -9,12 +9,14 @@ defmodule GangWeb.LobbyLive do
       Phoenix.PubSub.subscribe(Gang.PubSub, "games")
     end
 
+    player_name = Map.get(socket.assigns, :player_name, "")
+
     socket =
       socket
       |> assign(
         games: [],
         game_code: "",
-        player_name: "",
+        player_name: player_name,
         show_error: false,
         error_message: ""
       )
@@ -23,7 +25,8 @@ defmodule GangWeb.LobbyLive do
   end
 
   @impl true
-  def handle_event("join_game", %{"game_code" => game_code, "player_name" => player_name}, socket) do
+  def handle_event("join_game", %{"game_code" => game_code}, socket) do
+    player_name = socket.assigns.player_name
     {:ok, _pid} = Games.join_game(game_code, player_name)
 
     {:noreply, push_navigate(socket, to: ~p"/games/#{game_code}?player_name=#{player_name}")}
@@ -32,9 +35,11 @@ defmodule GangWeb.LobbyLive do
   @impl true
   def handle_event(
         "create_game",
-        %{"player_name" => player_name},
+        _params,
         socket
       ) do
+    player_name = socket.assigns.player_name
+
     case Games.create_game() do
       {:ok, game_code} ->
         Games.broadcast_game_created(game_code)
@@ -52,9 +57,16 @@ defmodule GangWeb.LobbyLive do
   @impl true
   def handle_event("validate_join", params, socket) do
     game_code = Map.get(params, "game_code", "")
-    player_name = Map.get(params, "player_name", "")
 
-    {:noreply, assign(socket, game_code: game_code, player_name: player_name)}
+    {:noreply, assign(socket, game_code: game_code)}
+  end
+
+  @impl true
+  def handle_event("set_player_name", %{"player_name" => player_name}, socket) do
+    {:noreply,
+     socket
+     |> assign(player_name: player_name)
+     |> push_event("set_player_name", %{player_name: player_name})}
   end
 
   @impl true
@@ -72,22 +84,36 @@ defmodule GangWeb.LobbyLive do
     ~H"""
     <div class="max-w-3xl mx-auto px-4 py-8">
       <h1 class="text-3xl font-bold mb-8 text-center">The Gang - Card Game</h1>
+      
+    <!-- Player Name Input -->
+      <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Your Player Name: {@player_name}</h2>
+        <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
+          <div class="flex items-center gap-4">
+            <div class="flex-grow">
+              <.input
+                type="text"
+                name="player_name"
+                placeholder="Enter Your Name"
+                value={@player_name}
+                id="player-name-input"
+                phx-hook="SetPlayerName"
+                required
+              />
+            </div>
+            <div>
+              <.button type="submit" class="whitespace-nowrap">Update Name</.button>
+            </div>
+          </div>
+        </.form>
+      </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Create Game Form -->
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold mb-4">Create New Game</h2>
           <.form for={%{}} phx-submit="create_game">
-            <div class="mb-4">
-              <.input
-                type="text"
-                name="player_name"
-                placeholder="Your Name"
-                value={@player_name}
-                required
-              />
-            </div>
-            <.button class="w-full">Create Game</.button>
+            <.button class="w-full" disabled={@player_name == ""}>Create Game</.button>
           </.form>
         </div>
         
@@ -104,16 +130,7 @@ defmodule GangWeb.LobbyLive do
                 required
               />
             </div>
-            <div class="mb-4">
-              <.input
-                type="text"
-                name="player_name"
-                placeholder="Your Name"
-                value={@player_name}
-                required
-              />
-            </div>
-            <.button class="w-full">Join Game</.button>
+            <.button class="w-full" disabled={@player_name == ""}>Join Game</.button>
           </.form>
         </div>
       </div>

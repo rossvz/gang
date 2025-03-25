@@ -1,1 +1,4 @@
 No need to start mix phx.server. I will always run the dev server.
+
+
+Make sure to use the newest Phoenix LiveView syntax, prefer `{foo}` in heex files over `<%= foo %>`
