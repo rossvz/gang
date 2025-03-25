@@ -50,12 +50,11 @@ defmodule GangWeb.GameLive do
       color
     )
 
-    {:noreply, socket}
+    {:noreply, assign(socket, selected_rank_chip: nil)}
   end
 
   @impl true
   def handle_event("claim_chip", _params, socket) do
-    # Handle case when claim_chip is called with no specific params (using selected_rank_chip)
     %{rank: rank, color: color} = socket.assigns.selected_rank_chip
 
     Games.claim_rank_chip(
@@ -65,7 +64,7 @@ defmodule GangWeb.GameLive do
       color
     )
 
-    {:noreply, socket}
+    {:noreply, assign(socket, selected_rank_chip: nil)}
   end
 
   @impl true
@@ -261,15 +260,20 @@ defmodule GangWeb.GameLive do
                 <div class="flex flex-wrap gap-1 mt-1">
                   <%= for color <- [:white, :yellow, :orange, :red] do %>
                     <%= if player_chip = Enum.find(player.rank_chips, &(&1.color == color)) do %>
-                      <div class={[
-                        "w-8 h-8 rounded-full flex items-center justify-center font-bold border",
-                        case color do
-                          :white -> "bg-white border-gray-400 text-gray-800"
-                          :yellow -> "bg-yellow-200 border-yellow-400 text-yellow-800"
-                          :orange -> "bg-orange-200 border-orange-400 text-orange-800"
-                          :red -> "bg-red-200 border-red-400 text-red-800"
-                        end
-                      ]}>
+                      <div
+                        phx-click="claim_chip"
+                        phx-value-rank={player_chip.rank}
+                        phx-value-color={color}
+                        class={[
+                          "w-8 h-8 rounded-full flex items-center justify-center font-bold border",
+                          case color do
+                            :white -> "bg-white border-gray-400 text-gray-800"
+                            :yellow -> "bg-yellow-200 border-yellow-400 text-yellow-800"
+                            :orange -> "bg-orange-200 border-orange-400 text-orange-800"
+                            :red -> "bg-red-200 border-red-400 text-red-800"
+                          end
+                        ]}
+                      >
                         {player_chip.rank}
                       </div>
                     <% else %>
@@ -393,9 +397,7 @@ defmodule GangWeb.GameLive do
                 can_claim_from_other = claimed && !is_mine && @player %>
                 <div class="relative">
                   <button
-                    phx-click={
-                      if can_claim_from_other, do: "claim_from_player", else: "select_rank_chip"
-                    }
+                    phx-click="claim_chip"
                     phx-value-rank={rank}
                     phx-value-color={current_color}
                     phx-value-player={claimed_by}
