@@ -120,6 +120,9 @@ defmodule Gang.Game.Game do
   def handle_call({:leave, player_name}, _from, state) do
     updated_state = State.update_player_connection(state, player_name, false)
     broadcast_update(updated_state)
+
+    # wait a while to see if they come back, otherwise assume they're gone
+    Process.send_after(self(), {:permanently_remove_player, player_name}, 1000)
     {:reply, {:ok, updated_state}, updated_state}
   end
 
@@ -199,6 +202,14 @@ defmodule Gang.Game.Game do
 
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
+  end
+
+  @impl true
+  def handle_info({:permanently_remove_player, player_name}, state) do
+    IO.puts("Permanently removing player #{player_name}")
+    updated_state = State.remove_player(state, player_name)
+    broadcast_update(updated_state)
+    {:noreply, updated_state}
   end
 
   # Helper function to deal cards to players (moved from State module)

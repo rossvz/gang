@@ -7,9 +7,7 @@ defmodule GangWeb.GameLive do
   alias Gang.Games
 
   @impl true
-  def mount(%{"id" => game_id}, _session, socket) do
-    player_name = socket.assigns[:player_name]
-
+  def mount(%{"id" => game_id, "player_name" => player_name}, _session, socket) do
     if connected?(socket) do
       Games.subscribe(game_id)
       if player_name, do: {:ok, _} = Games.join_game(game_id, player_name)
@@ -114,6 +112,11 @@ defmodule GangWeb.GameLive do
     {:noreply, assign(socket, selected_rank_chip: %{rank: rank, color: color})}
   end
 
+  def handle_event("back_to_lobby", _params, socket) do
+    Games.leave_game(socket.assigns.game_id, socket.assigns.player_name)
+    {:noreply, push_navigate(socket, to: ~p"/")}
+  end
+
   @impl true
   def handle_info({:game_updated, game}, socket) do
     # Update the player object when the game state changes
@@ -147,58 +150,18 @@ defmodule GangWeb.GameLive do
   defp color_classes(:orange), do: "bg-orange-400 text-orange-900 border-orange-600"
   defp color_classes(:red), do: "bg-red-500 text-white border-red-700"
 
-  defp card_display(%Card{rank: rank, suit: suit}) do
-    suit_icon =
-      case suit do
-        :hearts -> "♥"
-        :diamonds -> "♦"
-        :clubs -> "♣"
-        :spades -> "♠"
-      end
-
-    rank_display =
-      case rank do
-        1 -> "A"
-        11 -> "J"
-        12 -> "Q"
-        13 -> "K"
-        n -> "#{n}"
-      end
-
-    text_color =
-      case suit do
-        :hearts -> "text-red-500"
-        :diamonds -> "text-red-500"
-        _ -> "text-black"
-      end
-
-    {rank_display, suit_icon, text_color}
-  end
-
-  defp get_player_with_name(players, name) do
-    Enum.find(players, &(&1.name == name))
-  end
-
-  defp has_rank_chip?(player, rank, color) do
-    Enum.any?(player.rank_chips, fn chip ->
-      chip.rank == rank && chip.color == color
-    end)
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
     <div class="max-w-6xl mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Game #{@game_id}</h1>
-        <.link navigate={~p"/"} class="text-indigo-600 hover:text-indigo-900">
-          Back to Lobby
-        </.link>
+        <button phx-click="back_to_lobby">Back to Lobby</button>
       </div>
 
       <%= if !@player do %>
         <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-8" role="alert">
-          <p>You are observing this game. Join with a player name to participate.</p>
+          <p>You are observing this game</p>
         </div>
       <% end %>
       
@@ -265,7 +228,7 @@ defmodule GangWeb.GameLive do
                   </.button>
                 <% else %>
                   <.button phx-click="continue" class="bg-purple-600 hover:bg-purple-700">
-                    Evaluate Hand
+                    End Round
                   </.button>
                 <% end %>
               <% end %>
@@ -505,10 +468,10 @@ defmodule GangWeb.GameLive do
     ]}>
       <div class="text-lg">
         {case @card.rank do
-          1 -> "A"
-          11 -> "J"
-          12 -> "Q"
+          14 -> "A"
           13 -> "K"
+          12 -> "Q"
+          11 -> "J"
           n -> "#{n}"
         end}
       </div>

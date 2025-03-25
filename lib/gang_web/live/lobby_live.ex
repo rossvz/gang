@@ -80,6 +80,11 @@ defmodule GangWeb.LobbyLive do
   end
 
   @impl true
+  def handle_info({:game_updated, _game}, socket) do
+    {:noreply, assign(socket, games: Games.list_games())}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="max-w-3xl mx-auto px-4 py-8">
@@ -165,6 +170,7 @@ defmodule GangWeb.LobbyLive do
                 </tr>
               <% else %>
                 <%= for {game_id, _pid} <- @games do %>
+                  <% status = Games.get_game_status(game_id) %>
                   <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-gray-900">
                       {game_id}
@@ -178,7 +184,7 @@ defmodule GangWeb.LobbyLive do
                       <% end %>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <%= case Games.get_game_status(game_id) do %>
+                      <%= case status do %>
                         <% {:ok, :waiting} -> %>
                           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                             Waiting
@@ -203,7 +209,7 @@ defmodule GangWeb.LobbyLive do
                           navigate={~p"/games/#{game_id}?player_name=#{@player_name}"}
                           class="text-indigo-600 hover:text-indigo-900"
                         >
-                          Join
+                          {if status == {:ok, :waiting}, do: "Join", else: "Watch"}
                         </.link>
                       <% else %>
                         <span class="text-gray-400">Enter Name</span>

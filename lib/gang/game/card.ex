@@ -20,7 +20,6 @@ defmodule Gang.Game.Card do
         13 -> "K"
         12 -> "Q"
         11 -> "J"
-        10 -> "10"
         n -> "#{n}"
       end
 

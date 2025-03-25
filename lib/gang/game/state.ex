@@ -56,7 +56,7 @@ defmodule Gang.Game.State do
   Only allowed during the waiting phase.
   """
   def add_player(state, player) do
-    if state.status == :waiting do
+    if state.status in [:waiting] do
       %__MODULE__{
         state
         | players: state.players ++ [player],
