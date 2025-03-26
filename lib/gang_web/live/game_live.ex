@@ -144,7 +144,7 @@ defmodule GangWeb.GameLive do
     """
   end
 
-  defp color_classes(:white), do: "bg-ctp-surface0 text-ctp-text border-ctp-overlay0"
+  defp color_classes(:white), do: "bg-ctp-text text-ctp-base border-ctp-overlay0"
   defp color_classes(:yellow), do: "bg-ctp-yellow text-ctp-base border-ctp-peach"
   defp color_classes(:orange), do: "bg-ctp-peach text-ctp-base border-ctp-red"
   defp color_classes(:red), do: "bg-ctp-red text-ctp-base border-ctp-maroon"
@@ -152,7 +152,7 @@ defmodule GangWeb.GameLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto px-4 py-8 bg-ctp-base text-ctp-text min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8 bg-ctp-base text-ctp-text min-h-screen">
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold text-ctp-text">Game #{@game_id}</h1>
         <button
@@ -172,7 +172,7 @@ defmodule GangWeb.GameLive do
         </div>
       <% end %>
       
-    <!-- Game Status -->
+    <!-- Game Status Bar -->
       <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
         <div class="flex justify-between items-center">
           <div>
@@ -257,207 +257,200 @@ defmodule GangWeb.GameLive do
         </div>
       </div>
       
-    <!-- Players List -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <%= for player <- @game.players do %>
-          <div class={[
-            "bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-4",
-            player.name == @player_name && "ring-2 ring-ctp-lavender"
-          ]}>
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="text-lg font-medium text-ctp-text">{player.name}</h3>
-              <span class={[
-                "px-2 py-1 text-xs rounded-full",
-                (player.connected && "bg-ctp-green/20 text-ctp-green") || "bg-ctp-red/20 text-ctp-red"
-              ]}>
-                {if player.connected, do: "Online", else: "Offline"}
-              </span>
-            </div>
+    <!-- Game Table Area -->
+      <%= if @game.status == :playing do %>
+        <div class="relative min-h-[600px] mb-8">
+          <!-- Central Table -->
+          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div class="relative w-[400px] h-[400px]">
+              
+    <!-- Inner play area -->
+              <div class="absolute inset-4 bg-ctp-mantle/80 backdrop-blur rounded-full border border-ctp-surface0/20">
+                <!-- Center Table Content -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px]">
+                  <!-- Community Cards -->
+                  <div class="text-center">
+                    <div class="flex flex-shrink-0 justify-center gap-2 mb-4">
+                      <%= for {card, idx} <- Enum.with_index(@game.community_cards) do %>
+                        <.card
+                          card={card || %Card{rank: idx + 1, suit: :spades}}
+                          revealed={!is_nil(card)}
+                        />
+                      <% end %>
+                    </div>
 
-            <%= if @game.status == :playing do %>
-              <!-- Player's Rank Chips -->
-              <div class="mb-2">
-                <span class="text-sm text-ctp-subtext0">Rank Chips:</span>
-                <div class="flex flex-wrap gap-1 mt-1">
-                  <%= for color <- [:white, :yellow, :orange, :red] do %>
-                    <%= if player_chip = Enum.find(player.rank_chips, &(&1.color == color)) do %>
-                      <div
-                        phx-click="claim_chip"
-                        phx-value-rank={player_chip.rank}
-                        phx-value-color={color}
-                        class={[
-                          "w-8 h-8 rounded-full flex items-center justify-center font-bold border transition-colors",
-                          case color do
-                            :white -> "bg-ctp-surface0 border-ctp-overlay0 text-ctp-text"
-                            :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
-                            :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
-                            :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
-                          end
-                        ]}
-                      >
-                        {player_chip.rank}
-                      </div>
-                    <% else %>
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center border border-dashed border-ctp-overlay0">
+                    <%= if @game.current_phase == :rank_chip_selection do %>
+                      <!-- Available Rank Chips -->
+                      <div class="flex justify-center gap-2 mt-4">
+                        <% current_color = @game.current_round_color
+
+                        chips_in_play =
+                          @game.players
+                          |> Enum.flat_map(& &1.rank_chips)
+                          |> Enum.filter(&(&1.color == current_color))
+
+                        claimed_ranks = Enum.map(chips_in_play, & &1.rank)
+                        max_players = min(6, length(@game.players)) %>
+
+                        <%= for rank <- 1..max_players do %>
+                          <% claimed = rank in claimed_ranks
+
+                          claimed_by =
+                            Enum.find(@game.players, fn p ->
+                              Enum.any?(p.rank_chips, fn c ->
+                                c.rank == rank && c.color == current_color
+                              end)
+                            end)
+
+                          is_mine = claimed_by && claimed_by.name == @player_name
+                          can_claim_from_other = claimed && !is_mine && @player %>
+
+                          <div class="relative">
+                            <button
+                              phx-click={if !claimed, do: "claim_chip"}
+                              phx-value-rank={rank}
+                              phx-value-color={current_color}
+                              disabled={claimed || !@player}
+                              class={[
+                                "w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-2 transition-all duration-300",
+                                "hover:scale-110 transform",
+                                claimed && "opacity-0",
+                                @selected_rank_chip && @selected_rank_chip.rank == rank &&
+                                  "ring-2 ring-ctp-lavender ring-offset-2 ring-offset-ctp-base",
+                                case current_color do
+                                  :white -> "bg-ctp-text border-ctp-overlay0 text-ctp-base"
+                                  :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
+                                  :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
+                                  :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
+                                end,
+                                !@player && "opacity-50 cursor-not-allowed",
+                                can_claim_from_other &&
+                                  "hover:brightness-110 border-ctp-blue border-2"
+                              ]}
+                            >
+                              {rank}
+                            </button>
+                          </div>
+                        <% end %>
                       </div>
                     <% end %>
-                  <% end %>
+                  </div>
                 </div>
               </div>
-              
+            </div>
+          </div>
+          
+    <!-- Players arranged in a circle outside the table -->
+          <% player_count = length(@game.players)
+
+          current_player_index =
+            if @player_name,
+              do: Enum.find_index(@game.players, &(&1.name == @player_name)),
+              else: 0
+
+          # Rotate the players so current player is at bottom (6 o'clock)
+          rotated_players =
+            if current_player_index do
+              Enum.slice(@game.players, current_player_index..-1//1) ++
+                Enum.slice(@game.players, 0..(current_player_index - 1)//1)
+            else
+              @game.players
+            end %>
+
+          <%= for {player, index} <- Enum.with_index(rotated_players) do %>
+            <% angle = 90 + 360 / player_count * index
+            # Larger radius for player cards (in pixels)
+            radius = 350
+            # percentage
+            center_x = 50
+            # percentage
+            center_y = 50
+            x = center_x + radius * :math.cos(angle * :math.pi() / 180) / 8
+            y = center_y + radius * :math.sin(angle * :math.pi() / 180) / 8 %>
+
+            <div
+              class={[
+                "absolute w-64 -translate-x-1/2 -translate-y-1/2",
+                "bg-ctp-surface0 backdrop-blur rounded-lg shadow-lg p-4",
+                "transition-all duration-300 hover:shadow-xl",
+                player.name == @player_name && "ring-2 ring-ctp-lavender"
+              ]}
+              style={"left: #{x}%; top: #{y}%"}
+            >
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-medium text-ctp-text">{player.name}</h3>
+                <span class={[
+                  "px-2 py-1 text-xs rounded-full",
+                  (player.connected && "bg-ctp-green/20 text-ctp-green") ||
+                    "bg-ctp-red/20 text-ctp-red"
+                ]}>
+                  {if player.connected, do: "Online", else: "Offline"}
+                </span>
+              </div>
+
+              <%= if @game.status == :playing do %>
+                <!-- Player's Rank Chips -->
+                <div class="mb-2">
+                  <div class="flex flex-wrap gap-1">
+                    <%= for color <- [:white, :yellow, :orange, :red] do %>
+                      <%= if player_chip = Enum.find(player.rank_chips, &(&1.color == color)) do %>
+                        <div
+                          phx-click="claim_chip"
+                          phx-value-color={player_chip.color}
+                          phx-value-rank={player_chip.rank}
+                          class={[
+                            "w-8 h-8 rounded-full flex items-center justify-center font-bold border transition-colors",
+                            case color do
+                              :white -> "bg-ctp-text border-ctp-overlay0 text-ctp-base"
+                              :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
+                              :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
+                              :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
+                            end
+                          ]}
+                        >
+                          {player_chip.rank}
+                        </div>
+                      <% else %>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center border border-dashed border-ctp-overlay0">
+                        </div>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+                
     <!-- Player's Cards -->
-              <%= if @game.round == 5 || player.name == @player_name do %>
-                <div class="mt-3">
-                  <span class="text-sm text-ctp-subtext0">Cards:</span>
-                  <div class="flex space-x-2 mt-1">
+                <%= if @game.round == 5 || player.name == @player_name do %>
+                  <div class="flex justify-center gap-2">
                     <%= for card <- player.cards do %>
                       <.card card={card} />
                     <% end %>
                   </div>
-                </div>
+                <% end %>
               <% end %>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-      
-    <!-- Main Game Area -->
-      <%= if @game.status == :playing do %>
-        <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
-          <h2 class="text-xl font-semibold mb-4 text-ctp-text">Community Cards</h2>
-
-          <%= if @game.round == 1 && Enum.all?(@game.community_cards, &is_nil/1) do %>
-            <%= if @game.vaults > 0 || @game.alarms > 0 do %>
-              <div class={[
-                "mb-4 p-3 rounded-md",
-                if(@game.vaults > @game.alarms,
-                  do: "bg-ctp-green/20 text-ctp-green",
-                  else: "bg-ctp-red/20 text-ctp-red"
-                )
-              ]}>
-                <p class="font-semibold">
-                  <%= if @game.vaults > @game.alarms do %>
-                    Vault secured! Players have opened {@game.vaults} vault{if @game.vaults > 1,
-                      do: "s"}.
-                  <% else %>
-                    Alarm triggered! Players have triggered {@game.alarms} alarm{if @game.alarms > 1,
-                      do: "s"}.
-                  <% end %>
-                </p>
-                <p class="text-sm mt-1 opacity-90">
-                  Starting a new hand. Select your rank chips for this round.
-                </p>
-              </div>
-            <% end %>
+            </div>
           <% end %>
-
-          <div class="flex flex-wrap gap-2">
-            <%= for {card, idx} <- Enum.with_index(@game.community_cards) do %>
-              <%= if card do %>
-                <.card card={card} />
-              <% else %>
-                <div class="w-16 h-24 bg-ctp-surface0 rounded-md flex items-center justify-center shadow-sm text-ctp-subtext0">
-                  {idx + 1}
-                </div>
-              <% end %>
-            <% end %>
-          </div>
         </div>
         
-    <!-- Current Round Rank Chips -->
-        <%= if @game.current_phase == :rank_chip_selection do %>
-          <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-semibold text-ctp-text">Available Rank Chips</h2>
-              <div class="space-x-2">
-                <%= if @player && @selected_rank_chip do %>
-                  <button
-                    class="px-4 py-2 rounded-lg bg-ctp-green hover:bg-ctp-teal text-ctp-base font-medium transition-colors"
-                    phx-click="claim_chip"
-                  >
-                    Claim Rank Chip {@selected_rank_chip.rank}
-                  </button>
-                <% end %>
+    <!-- Action Buttons -->
+        <%= if @game.current_phase == :rank_chip_selection && @player do %>
+          <div class="fixed bottom-[15%] left-1/2 -translate-x-1/2 flex gap-2">
+            <%= if @selected_rank_chip do %>
+              <button
+                class="px-4 py-2 rounded-lg bg-ctp-green hover:bg-ctp-teal text-ctp-base font-medium transition-colors"
+                phx-click="claim_chip"
+              >
+                Claim Rank Chip {@selected_rank_chip.rank}
+              </button>
+            <% end %>
 
-                <%= if @player && Enum.any?(@player.rank_chips, &(&1.color == @game.current_round_color)) do %>
-                  <button
-                    class="px-4 py-2 rounded-lg bg-ctp-red hover:bg-ctp-maroon text-ctp-base font-medium transition-colors"
-                    phx-click="return_chip"
-                  >
-                    Return My Chip
-                  </button>
-                <% end %>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap gap-3">
-              <% current_color = @game.current_round_color
-
-              chips_in_play =
-                @game.players
-                |> Enum.flat_map(& &1.rank_chips)
-                |> Enum.filter(&(&1.color == current_color))
-
-              claimed_ranks = Enum.map(chips_in_play, & &1.rank)
-
-              player_with_chip = fn rank ->
-                chip = Enum.find(chips_in_play, &(&1.rank == rank))
-
-                if chip do
-                  owner =
-                    Enum.find(@game.players, fn p ->
-                      Enum.any?(p.rank_chips, fn c -> c.rank == rank && c.color == current_color end)
-                    end)
-
-                  if owner, do: owner.name, else: nil
-                else
-                  nil
-                end
-              end
-
-              max_players = min(6, length(@game.players)) %>
-
-              <%= for rank <- 1..max_players do %>
-                <% claimed = rank in claimed_ranks
-                claimed_by = player_with_chip.(rank)
-                is_mine = claimed_by == @player_name
-                can_claim_from_other = claimed && !is_mine && @player %>
-                <div class="relative">
-                  <button
-                    phx-click="claim_chip"
-                    phx-value-rank={rank}
-                    phx-value-color={current_color}
-                    phx-value-player={claimed_by}
-                    disabled={(claimed && !can_claim_from_other) || !@player}
-                    class={[
-                      "w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl border transition-colors",
-                      @selected_rank_chip && @selected_rank_chip.rank == rank &&
-                        "ring-2 ring-ctp-lavender ring-offset-2 ring-offset-ctp-base",
-                      case current_color do
-                        :white -> "bg-ctp-surface0 border-ctp-overlay0 text-ctp-text"
-                        :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
-                        :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
-                        :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
-                      end,
-                      claimed && !can_claim_from_other && "opacity-50 cursor-not-allowed",
-                      !@player && "opacity-50 cursor-not-allowed",
-                      can_claim_from_other && "hover:brightness-110 border-ctp-blue border-2"
-                    ]}
-                    title={if can_claim_from_other, do: "Claim from #{claimed_by}", else: nil}
-                  >
-                    {rank}
-                  </button>
-                  <%= if claimed_by && claimed_by != @player_name do %>
-                    <div
-                      class="absolute -top-2 -right-2 bg-ctp-lavender text-ctp-base text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                      title={"Claimed by #{claimed_by}"}
-                    >
-                      {String.first(claimed_by)}
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
+            <%= if Enum.any?(@player.rank_chips, &(&1.color == @game.current_round_color)) do %>
+              <button
+                class="px-4 py-2 rounded-lg bg-ctp-red hover:bg-ctp-maroon text-ctp-base font-medium transition-colors"
+                phx-click="return_chip"
+              >
+                Return My Chip
+              </button>
+            <% end %>
           </div>
         <% end %>
       <% else %>
@@ -484,62 +477,94 @@ defmodule GangWeb.GameLive do
 
   # Card component
   attr :card, Card, required: true
+  attr :revealed, :boolean, default: true
 
   def card(assigns) do
     ~H"""
     <div class={[
-      "group w-20 h-28 rounded-xl flex flex-col items-center justify-between p-3 font-bold relative cursor-default",
+      "group w-20 h-28 rounded-xl flex flex-col flex-shrink-0 items-center justify-between p-3 font-bold relative cursor-default",
       "transform transition-all duration-300 hover:scale-105 hover:-translate-y-1",
       "shadow-lg hover:shadow-xl border-2",
-      case @card.suit do
-        :hearts -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
-        :diamonds -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
-        :clubs -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
-        :spades -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+      if @revealed do
+        case @card.suit do
+          :hearts -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+          :diamonds -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+          :clubs -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+          :spades -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+        end
+      else
+        "bg-gradient-to-br from-ctp-surface0 to-ctp-mantle border-ctp-overlay0/20"
       end
     ]}>
-      <!-- Top rank -->
-      <div class="self-start text-xl font-extrabold tracking-tight">
-        {case @card.rank do
-          14 -> "A"
-          13 -> "K"
-          12 -> "Q"
-          11 -> "J"
-          n -> "#{n}"
-        end}
-      </div>
-      
+      <%= if @revealed do %>
+        <!-- Top rank -->
+        <div class="self-start text-xl font-extrabold tracking-tight">
+          {case @card.rank do
+            14 -> "A"
+            13 -> "K"
+            12 -> "Q"
+            11 -> "J"
+            n -> "#{n}"
+          end}
+        </div>
+        
     <!-- Center suit with glow effect -->
-      <div class={[
-        "text-4xl transform transition-all duration-300 group-hover:scale-110",
-        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-        case @card.suit do
-          suit when suit in [:hearts, :diamonds] -> "drop-shadow-[0_0_3px_rgba(237,135,150,0.5)]"
-          _ -> "drop-shadow-[0_0_3px_rgba(205,214,244,0.5)]"
-        end
-      ]}>
-        {case @card.suit do
-          :hearts -> "♥"
-          :diamonds -> "♦"
-          :clubs -> "♣"
-          :spades -> "♠"
-        end}
-      </div>
-      
+        <div class={[
+          "text-4xl transform transition-all duration-300 group-hover:scale-110",
+          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+          case @card.suit do
+            suit when suit in [:hearts, :diamonds] -> "drop-shadow-[0_0_3px_rgba(237,135,150,0.5)]"
+            _ -> "drop-shadow-[0_0_3px_rgba(205,214,244,0.5)]"
+          end
+        ]}>
+          {case @card.suit do
+            :hearts -> "♥"
+            :diamonds -> "♦"
+            :clubs -> "♣"
+            :spades -> "♠"
+          end}
+        </div>
+        
     <!-- Bottom rank (inverted) -->
-      <div class="self-end text-xl font-extrabold tracking-tight rotate-180">
-        {case @card.rank do
-          14 -> "A"
-          13 -> "K"
-          12 -> "Q"
-          11 -> "J"
-          n -> "#{n}"
-        end}
-      </div>
-      
+        <div class="self-end text-xl font-extrabold tracking-tight rotate-180">
+          {case @card.rank do
+            14 -> "A"
+            13 -> "K"
+            12 -> "Q"
+            11 -> "J"
+            n -> "#{n}"
+          end}
+        </div>
+        
     <!-- Subtle shine effect -->
-      <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-      </div>
+        <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        </div>
+      <% else %>
+        <!-- Card back design -->
+        <div class="absolute inset-2 rounded-lg bg-ctp-surface0 overflow-hidden">
+          <!-- Animated pattern -->
+          <div class="absolute inset-0 bg-ctp-overlay0/10">
+            <div class="absolute inset-0 grid grid-cols-3 gap-1 p-1">
+              <%= for _i <- 1..9 do %>
+                <div class="aspect-square rounded-sm bg-ctp-overlay0/10 animate-pulse"></div>
+              <% end %>
+            </div>
+          </div>
+          <!-- Center diamond -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-8 h-8 rotate-45 bg-ctp-overlay0/20 animate-pulse"></div>
+          </div>
+          <!-- Corner accents -->
+          <div class="absolute top-1 left-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          </div>
+          <div class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          </div>
+          <div class="absolute bottom-1 left-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          </div>
+          <div class="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          </div>
+        </div>
+      <% end %>
     </div>
     """
   end
