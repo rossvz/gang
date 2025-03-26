@@ -259,29 +259,29 @@ defmodule GangWeb.GameLive do
       
     <!-- Game Table Area -->
       <%= if @game.status == :playing do %>
-        <div class="relative min-h-[600px] mb-8">
+        <div class="relative min-h-[600px] md:min-h-[700px] lg:min-h-[800px] mb-8">
           <!-- Central Table -->
           <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div class="relative w-[400px] h-[400px]">
-              
-    <!-- Inner play area -->
+            <div class="relative w-[240px] h-[240px] md:w-[320px] md:h-[320px] lg:w-[400px] lg:h-[400px]">
+              <!-- Inner play area -->
               <div class="absolute inset-4 bg-ctp-mantle/80 backdrop-blur rounded-full border border-ctp-surface0/20">
                 <!-- Center Table Content -->
-                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px]">
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] md:w-[240px] lg:w-[300px]">
                   <!-- Community Cards -->
                   <div class="text-center">
-                    <div class="flex flex-shrink-0 justify-center gap-2 mb-4">
+                    <div class="flex flex-shrink-0 justify-center gap-1 md:gap-2 mb-4">
                       <%= for {card, idx} <- Enum.with_index(@game.community_cards) do %>
                         <.card
                           card={card || %Card{rank: idx + 1, suit: :spades}}
                           revealed={!is_nil(card)}
+                          size={if @game.round == 5, do: "normal", else: "small"}
                         />
                       <% end %>
                     </div>
 
                     <%= if @game.current_phase == :rank_chip_selection do %>
                       <!-- Available Rank Chips -->
-                      <div class="flex justify-center gap-2 mt-4">
+                      <div class="flex justify-center gap-1 md:gap-2 mt-4">
                         <% current_color = @game.current_round_color
 
                         chips_in_play =
@@ -312,9 +312,8 @@ defmodule GangWeb.GameLive do
                               phx-value-color={current_color}
                               disabled={claimed || !@player}
                               class={[
-                                "w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-2 transition-all duration-300",
+                                "w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-base lg:text-lg border-2 transition-all duration-300",
                                 "hover:scale-110 transform",
-                                claimed && "opacity-0",
                                 @selected_rank_chip && @selected_rank_chip.rank == rank &&
                                   "ring-2 ring-ctp-lavender ring-offset-2 ring-offset-ctp-base",
                                 case current_color do
@@ -323,6 +322,7 @@ defmodule GangWeb.GameLive do
                                   :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
                                   :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
                                 end,
+                                claimed && "opacity-0",
                                 !@player && "opacity-50 cursor-not-allowed",
                                 can_claim_from_other &&
                                   "hover:brightness-110 border-ctp-blue border-2"
@@ -340,47 +340,67 @@ defmodule GangWeb.GameLive do
             </div>
           </div>
           
-    <!-- Players arranged in a circle outside the table -->
-          <% player_count = length(@game.players)
+    <!-- Players arranged in a circle -->
+          <% # Get unique players to prevent duplicates
+          unique_players = Enum.uniq_by(@game.players, & &1.name)
+          player_count = length(unique_players)
 
+          # Find current player index in the unique players list
           current_player_index =
             if @player_name,
-              do: Enum.find_index(@game.players, &(&1.name == @player_name)),
+              do: Enum.find_index(unique_players, &(&1.name == @player_name)),
               else: 0
 
-          # Rotate the players so current player is at bottom (6 o'clock)
+          # Rotate players so current player is at the bottom
           rotated_players =
             if current_player_index do
-              Enum.slice(@game.players, current_player_index..-1//1) ++
-                Enum.slice(@game.players, 0..(current_player_index - 1)//1)
+              # Split the list at current player and rotate
+              {before_current, [current | after_current]} =
+                Enum.split(unique_players, current_player_index)
+
+              [current | after_current] ++ before_current
             else
-              @game.players
+              unique_players
             end %>
 
           <%= for {player, index} <- Enum.with_index(rotated_players) do %>
-            <% angle = 90 + 360 / player_count * index
-            # Larger radius for player cards (in pixels)
-            radius = 350
-            # percentage
-            center_x = 50
-            # percentage
-            center_y = 50
-            x = center_x + radius * :math.cos(angle * :math.pi() / 180) / 8
-            y = center_y + radius * :math.sin(angle * :math.pi() / 180) / 8 %>
+            <% base_angle = 90
+            angle_step = 360 / player_count
+            # Add angle_step to rotate clockwise from South
+            angle = base_angle + angle_step * index
+
+            # Adjust radius based on screen size and player count
+            base_radius =
+              cond do
+                player_count <= 3 -> 300
+                player_count <= 4 -> 350
+                true -> 400
+              end
+
+            # Add padding to prevent cutoff
+            container_padding = 0
+
+            # Calculate position with adjusted radius and padding
+            radius = base_radius + container_padding
+            x = 50 + radius * :math.cos(angle * :math.pi() / 180) / 10
+            y = 50 + radius * :math.sin(angle * :math.pi() / 180) / 10 %>
 
             <div
               class={[
-                "absolute w-64 -translate-x-1/2 -translate-y-1/2",
-                "bg-ctp-surface0 backdrop-blur rounded-lg shadow-lg p-4",
-                "transition-all duration-300 hover:shadow-xl",
+                "absolute w-40 md:w-48 lg:w-64 -translate-x-1/2 -translate-y-1/2",
+                "bg-ctp-surface0/90 backdrop-blur rounded-lg shadow-lg p-2 md:p-3 lg:p-4",
+                "transition-all duration-300 hover:shadow-xl hover:bg-ctp-surface0",
+                "border border-ctp-surface0/50",
                 player.name == @player_name && "ring-2 ring-ctp-lavender"
               ]}
               style={"left: #{x}%; top: #{y}%"}
             >
-              <div class="flex justify-between items-center mb-2">
-                <h3 class="text-lg font-medium text-ctp-text">{player.name}</h3>
+              <div class="flex justify-between items-center mb-1 md:mb-2">
+                <h3 class="text-sm md:text-base lg:text-lg font-medium text-ctp-text truncate flex-1">
+                  {player.name}
+                </h3>
                 <span class={[
-                  "px-2 py-1 text-xs rounded-full",
+                  "px-1.5 py-0.5 text-xs rounded-full ml-1 md:ml-2",
                   (player.connected && "bg-ctp-green/20 text-ctp-green") ||
                     "bg-ctp-red/20 text-ctp-red"
                 ]}>
@@ -390,16 +410,16 @@ defmodule GangWeb.GameLive do
 
               <%= if @game.status == :playing do %>
                 <!-- Player's Rank Chips -->
-                <div class="mb-2">
-                  <div class="flex flex-wrap gap-1">
+                <div class="mb-1 md:mb-2">
+                  <div class="flex flex-wrap gap-0.5 md:gap-1">
                     <%= for color <- [:white, :yellow, :orange, :red] do %>
                       <%= if player_chip = Enum.find(player.rank_chips, &(&1.color == color)) do %>
                         <div
                           phx-click="claim_chip"
-                          phx-value-color={player_chip.color}
                           phx-value-rank={player_chip.rank}
+                          phx-value-color={player_chip.color}
                           class={[
-                            "w-8 h-8 rounded-full flex items-center justify-center font-bold border transition-colors",
+                            "w-5 h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center font-bold text-xs md:text-sm lg:text-base border transition-colors cursor-pointer",
                             case color do
                               :white -> "bg-ctp-text border-ctp-overlay0 text-ctp-base"
                               :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
@@ -411,7 +431,7 @@ defmodule GangWeb.GameLive do
                           {player_chip.rank}
                         </div>
                       <% else %>
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center border border-dashed border-ctp-overlay0">
+                        <div class="w-5 h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center border border-dashed border-ctp-overlay0">
                         </div>
                       <% end %>
                     <% end %>
@@ -420,9 +440,9 @@ defmodule GangWeb.GameLive do
                 
     <!-- Player's Cards -->
                 <%= if @game.round == 5 || player.name == @player_name do %>
-                  <div class="flex justify-center gap-2">
+                  <div class="flex justify-center gap-0.5 md:gap-1 lg:gap-2">
                     <%= for card <- player.cards do %>
-                      <.card card={card} />
+                      <.card card={card} size={if index == 0, do: "normal", else: "small"} />
                     <% end %>
                   </div>
                 <% end %>
@@ -433,10 +453,10 @@ defmodule GangWeb.GameLive do
         
     <!-- Action Buttons -->
         <%= if @game.current_phase == :rank_chip_selection && @player do %>
-          <div class="fixed bottom-[15%] left-1/2 -translate-x-1/2 flex gap-2">
+          <div class="fixed bottom-4 md:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
             <%= if @selected_rank_chip do %>
               <button
-                class="px-4 py-2 rounded-lg bg-ctp-green hover:bg-ctp-teal text-ctp-base font-medium transition-colors"
+                class="px-2 py-1 md:px-3 md:py-1.5 lg:px-4 lg:py-2 text-xs md:text-sm lg:text-base rounded-lg bg-ctp-green hover:bg-ctp-teal text-ctp-base font-medium transition-colors"
                 phx-click="claim_chip"
               >
                 Claim Rank Chip {@selected_rank_chip.rank}
@@ -445,7 +465,7 @@ defmodule GangWeb.GameLive do
 
             <%= if Enum.any?(@player.rank_chips, &(&1.color == @game.current_round_color)) do %>
               <button
-                class="px-4 py-2 rounded-lg bg-ctp-red hover:bg-ctp-maroon text-ctp-base font-medium transition-colors"
+                class="px-2 py-1 md:px-3 md:py-1.5 lg:px-4 lg:py-2 text-xs md:text-sm lg:text-base rounded-lg bg-ctp-red hover:bg-ctp-maroon text-ctp-base font-medium transition-colors"
                 phx-click="return_chip"
               >
                 Return My Chip
@@ -478,27 +498,52 @@ defmodule GangWeb.GameLive do
   # Card component
   attr :card, Card, required: true
   attr :revealed, :boolean, default: true
+  # Can be "small", "normal", or "large"
+  attr :size, :string, default: "normal"
 
   def card(assigns) do
     ~H"""
-    <div class={[
-      "group w-20 h-28 rounded-xl flex flex-col flex-shrink-0 items-center justify-between p-3 font-bold relative cursor-default",
-      "transform transition-all duration-300 hover:scale-105 hover:-translate-y-1",
-      "shadow-lg hover:shadow-xl border-2",
-      if @revealed do
-        case @card.suit do
-          :hearts -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
-          :diamonds -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
-          :clubs -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
-          :spades -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+    <div class={
+      [
+        "group rounded-xl flex flex-col flex-shrink-0 items-center justify-between font-bold relative cursor-default",
+        "transform transition-all duration-300 hover:scale-105 hover:-translate-y-1",
+        "shadow-lg hover:shadow-xl border-2",
+        # Size classes
+        case @size do
+          "small" -> "w-14 h-20 p-2 text-sm"
+          "normal" -> "w-[4.5rem] h-[6.5rem] p-2"
+          "large" -> "w-20 h-28 p-3"
+        end,
+        # Color classes
+        if @revealed do
+          case @card.suit do
+            :hearts ->
+              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+
+            :diamonds ->
+              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+
+            :clubs ->
+              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+
+            :spades ->
+              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+          end
+        else
+          "bg-gradient-to-br from-ctp-surface0 to-ctp-mantle border-ctp-overlay0/20"
         end
-      else
-        "bg-gradient-to-br from-ctp-surface0 to-ctp-mantle border-ctp-overlay0/20"
-      end
-    ]}>
+      ]
+    }>
       <%= if @revealed do %>
         <!-- Top rank -->
-        <div class="self-start text-xl font-extrabold tracking-tight">
+        <div class={[
+          "self-start font-extrabold tracking-tight",
+          case @size do
+            "small" -> "text-base"
+            "normal" -> "text-lg"
+            "large" -> "text-xl"
+          end
+        ]}>
           {case @card.rank do
             14 -> "A"
             13 -> "K"
@@ -510,8 +555,13 @@ defmodule GangWeb.GameLive do
         
     <!-- Center suit with glow effect -->
         <div class={[
-          "text-4xl transform transition-all duration-300 group-hover:scale-110",
+          "transform transition-all duration-300 group-hover:scale-110",
           "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+          case @size do
+            "small" -> "text-2xl"
+            "normal" -> "text-3xl"
+            "large" -> "text-4xl"
+          end,
           case @card.suit do
             suit when suit in [:hearts, :diamonds] -> "drop-shadow-[0_0_3px_rgba(237,135,150,0.5)]"
             _ -> "drop-shadow-[0_0_3px_rgba(205,214,244,0.5)]"
@@ -526,7 +576,14 @@ defmodule GangWeb.GameLive do
         </div>
         
     <!-- Bottom rank (inverted) -->
-        <div class="self-end text-xl font-extrabold tracking-tight rotate-180">
+        <div class={[
+          "self-end font-extrabold tracking-tight rotate-180",
+          case @size do
+            "small" -> "text-base"
+            "normal" -> "text-lg"
+            "large" -> "text-xl"
+          end
+        ]}>
           {case @card.rank do
             14 -> "A"
             13 -> "K"
@@ -552,16 +609,24 @@ defmodule GangWeb.GameLive do
           </div>
           <!-- Center diamond -->
           <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-8 h-8 rotate-45 bg-ctp-overlay0/20 animate-pulse"></div>
+            <div class={[
+              "rotate-45 bg-ctp-overlay0/20 animate-pulse",
+              case @size do
+                "small" -> "w-6 h-6"
+                "normal" -> "w-7 h-7"
+                "large" -> "w-8 h-8"
+              end
+            ]}>
+            </div>
           </div>
           <!-- Corner accents -->
-          <div class="absolute top-1 left-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          <div class="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
           </div>
-          <div class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          <div class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
           </div>
-          <div class="absolute bottom-1 left-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          <div class="absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
           </div>
-          <div class="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-ctp-overlay0/20 animate-pulse">
+          <div class="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
           </div>
         </div>
       <% end %>
