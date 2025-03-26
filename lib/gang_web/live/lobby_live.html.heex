@@ -1,0 +1,138 @@
+<div class="min-h-screen bg-ctp-base">
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center text-ctp-text">The Gang - Card Game</h1>
+    
+<!-- Player Name Input -->
+    <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4 text-ctp-text">Your Player Name: {@player_name}</h2>
+      <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
+        <div class="flex items-center gap-4">
+          <div class="flex-grow">
+            <.input
+              type="text"
+              name="player_name"
+              placeholder="Enter Your Name"
+              value={@player_name}
+              id="player-name-input"
+              phx-hook="SetPlayerName"
+              required
+            />
+          </div>
+          <div>
+            <.button type="submit" class="whitespace-nowrap">Update Name</.button>
+          </div>
+        </div>
+      </.form>
+    </div>
+
+    <div :if={@player_name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Create Game Form -->
+      <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6">
+        <h2 class="text-xl font-semibold mb-4 text-ctp-text">Create New Game</h2>
+        <.form for={%{}} phx-submit="create_game">
+          <.button class="w-full" disabled={@player_name == ""}>Create Game</.button>
+        </.form>
+      </div>
+      
+<!-- Join Game Form -->
+      <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6">
+        <h2 class="text-xl font-semibold mb-4 text-ctp-text">Join Existing Game</h2>
+        <.form for={%{}} phx-submit="join_game" phx-change="validate_join">
+          <div class="mb-4">
+            <.input
+              type="text"
+              name="game_code"
+              placeholder="Game Code"
+              value={@game_code}
+              required
+            />
+          </div>
+          <.button class="w-full" disabled={@player_name == ""}>Join Game</.button>
+        </.form>
+      </div>
+    </div>
+    
+<!-- Active Games List -->
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold mb-4 text-ctp-text">Active Games</h2>
+      <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 overflow-hidden">
+        <table class="min-w-full">
+          <thead class="bg-ctp-surface0">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+                Game ID
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+                Players
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+                Status
+              </th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-ctp-surface0">
+            <%= if Enum.empty?(@games) do %>
+              <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-ctp-subtext0">
+                  No active games. Create one to get started!
+                </td>
+              </tr>
+            <% else %>
+              <%= for {game_id, _pid} <- @games do %>
+                <% status = Games.get_game_status(game_id) %>
+                <tr class="hover:bg-ctp-surface0 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap text-ctp-text">
+                    {game_id}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-ctp-subtext0">
+                    <%= case Games.get_player_count(game_id) do %>
+                      <% {:ok, count} -> %>
+                        {count} / 6
+                      <% _ -> %>
+                        0 / 6
+                    <% end %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <%= case status do %>
+                      <% {:ok, :waiting} -> %>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-ctp-yellow/20 text-ctp-yellow">
+                          Waiting
+                        </span>
+                      <% {:ok, :playing} -> %>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-ctp-green/20 text-ctp-green">
+                          In Progress
+                        </span>
+                      <% {:ok, :completed} -> %>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-ctp-blue/20 text-ctp-blue">
+                          Completed
+                        </span>
+                      <% _ -> %>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-ctp-overlay0/20 text-ctp-overlay0">
+                          Unknown
+                        </span>
+                    <% end %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <%= if @player_name != "" do %>
+                      <.link
+                        navigate={~p"/games/#{game_id}?player_name=#{@player_name}"}
+                        class="text-ctp-blue hover:text-ctp-sapphire transition-colors"
+                      >
+                        {if status == {:ok, :waiting}, do: "Join", else: "Watch"}
+                      </.link>
+                    <% else %>
+                      <span class="text-ctp-overlay0">Enter Name</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
