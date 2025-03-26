@@ -488,15 +488,18 @@ defmodule GangWeb.GameLive do
   def card(assigns) do
     ~H"""
     <div class={[
-      "w-16 h-24 rounded-md flex flex-col items-center justify-center font-bold shadow-md border transition-colors",
+      "group w-20 h-28 rounded-xl flex flex-col items-center justify-between p-3 font-bold relative cursor-default",
+      "transform transition-all duration-300 hover:scale-105 hover:-translate-y-1",
+      "shadow-lg hover:shadow-xl border-2",
       case @card.suit do
-        :hearts -> "bg-ctp-mantle text-ctp-red border-ctp-surface0"
-        :diamonds -> "bg-ctp-mantle text-ctp-red border-ctp-surface0"
-        :clubs -> "bg-ctp-mantle text-ctp-text border-ctp-surface0"
-        :spades -> "bg-ctp-mantle text-ctp-text border-ctp-surface0"
+        :hearts -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+        :diamonds -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+        :clubs -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+        :spades -> "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
       end
     ]}>
-      <div class="text-lg">
+      <!-- Top rank -->
+      <div class="self-start text-xl font-extrabold tracking-tight">
         {case @card.rank do
           14 -> "A"
           13 -> "K"
@@ -505,13 +508,37 @@ defmodule GangWeb.GameLive do
           n -> "#{n}"
         end}
       </div>
-      <div class="text-xl">
+      
+    <!-- Center suit with glow effect -->
+      <div class={[
+        "text-4xl transform transition-all duration-300 group-hover:scale-110",
+        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+        case @card.suit do
+          suit when suit in [:hearts, :diamonds] -> "drop-shadow-[0_0_3px_rgba(237,135,150,0.5)]"
+          _ -> "drop-shadow-[0_0_3px_rgba(205,214,244,0.5)]"
+        end
+      ]}>
         {case @card.suit do
           :hearts -> "♥"
           :diamonds -> "♦"
           :clubs -> "♣"
           :spades -> "♠"
         end}
+      </div>
+      
+    <!-- Bottom rank (inverted) -->
+      <div class="self-end text-xl font-extrabold tracking-tight rotate-180">
+        {case @card.rank do
+          14 -> "A"
+          13 -> "K"
+          12 -> "Q"
+          11 -> "J"
+          n -> "#{n}"
+        end}
+      </div>
+      
+    <!-- Subtle shine effect -->
+      <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
       </div>
     </div>
     """
