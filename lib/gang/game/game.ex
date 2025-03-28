@@ -8,6 +8,9 @@ defmodule Gang.Game.Game do
   alias Gang.PubSub
   alias Gang.Game.{Evaluator, Player, State, Deck}
 
+  # How long to wait for a player to reconnect after they leave the game
+  @permanently_remove_player_timeout 30_000
+
   # Client API
 
   def start_link(code) do
@@ -133,7 +136,12 @@ defmodule Gang.Game.Game do
     broadcast_update(updated_state)
 
     # wait a while to see if they come back, otherwise assume they're gone
-    Process.send_after(self(), {:permanently_remove_player, player_id}, 1000)
+    Process.send_after(
+      self(),
+      {:permanently_remove_player, player_id},
+      @permanently_remove_player_timeout
+    )
+
     {:reply, {:ok, updated_state}, updated_state}
   end
 
@@ -239,6 +247,7 @@ defmodule Gang.Game.Game do
 
   defp broadcast_update(state) do
     Phoenix.PubSub.broadcast(PubSub, "game:#{state.code}", {:game_updated, state})
+    Phoenix.PubSub.broadcast(PubSub, "games", {:game_updated, state})
   end
 
   # Helper to get process via the registry

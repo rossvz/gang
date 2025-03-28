@@ -34,10 +34,18 @@ defmodule Gang.Games do
 
   @doc """
   Gets the number of players in a game.
+  Excludes disconnected players!
+  If someone disconnects or goes to lobby there's a 30s grace period where they can rejoin
+  and not lose state.
   """
   def get_player_count(code) do
     with {:ok, state} <- get_game(code) do
-      {:ok, length(state.players)}
+      active_count =
+        state.players
+        |> Enum.filter(& &1.connected)
+        |> Enum.count()
+
+      {:ok, active_count}
     end
   end
 

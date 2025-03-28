@@ -18,7 +18,7 @@ defmodule GangWeb.LobbyLive do
     socket =
       socket
       |> assign(
-        games: [],
+        games: list_games(),
         game_code: "",
         player_name: player_name,
         player_id: player_id,
@@ -27,7 +27,7 @@ defmodule GangWeb.LobbyLive do
       )
       |> push_event("set_player_name", %{player_name: player_name, player_id: player_id})
 
-    {:ok, assign(socket, games: Games.list_games())}
+    {:ok, socket}
   end
 
   @impl true
@@ -110,6 +110,21 @@ defmodule GangWeb.LobbyLive do
 
   @impl true
   def handle_info({:game_updated, _game}, socket) do
-    {:noreply, assign(socket, games: Games.list_games())}
+    games = list_games()
+    {:noreply, assign(socket, games: games)}
+  end
+
+  defp list_games do
+    Games.list_games()
+    |> Enum.map(fn {game_id, _pid} ->
+      {:ok, status} = Games.get_game_status(game_id)
+      {:ok, count} = Games.get_player_count(game_id)
+
+      %{
+        game_id: game_id,
+        status: status,
+        count: count || 0
+      }
+    end)
   end
 end
