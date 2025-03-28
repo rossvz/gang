@@ -1,189 +1,177 @@
-<div class="min-h-screen bg-gradient-to-br from-ctp-base to-ctp-crust relative overflow-hidden">
-  <!-- Decorative Elements -->
-  <div class="absolute inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-16 -left-16 w-32 h-32 bg-ctp-mauve/10 rounded-full blur-xl animate-pulse">
-    </div>
-    <div class="absolute top-1/2 -right-16 w-32 h-32 bg-ctp-blue/10 rounded-full blur-xl animate-pulse delay-700">
-    </div>
-    <div class="absolute -bottom-16 left-1/2 w-32 h-32 bg-ctp-red/10 rounded-full blur-xl animate-pulse delay-1000">
-    </div>
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <!-- Animated Header -->
+  <div class="text-center mb-12 transform hover:scale-105 transition-transform duration-300">
+    <h1 class="p-4 text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-ctp-mauve via-ctp-red to-ctp-peach bg-clip-text text-transparent animate-gradient">
+      The Gang
+    </h1>
+  </div>
+  
+<!-- Player Name Input with Enhanced Styling -->
+  <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 mb-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+    <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
+      <span class="text-ctp-mauve">👤</span> Your Player Name: {@player_name}
+    </h2>
+    <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
+      <div class="flex items-center gap-4">
+        <div class="flex-grow">
+          <.input
+            type="text"
+            name="player_name"
+            placeholder="Enter Your Name"
+            value={@player_name}
+            id="player-name-input"
+            phx-hook="SetPlayerName"
+            required
+            class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-mauve transition-colors duration-300"
+          />
+        </div>
+        <div>
+          <.button
+            type="submit"
+            class="bg-ctp-mauve hover:bg-ctp-pink transition-colors duration-300 transform hover:scale-105"
+          >
+            Update Name
+          </.button>
+        </div>
+      </div>
+    </.form>
   </div>
 
-  <div class="max-w-3xl mx-auto px-4 py-12 relative">
-    <!-- Animated Header -->
-    <div class="text-center mb-12 transform hover:scale-105 transition-transform duration-300">
-      <h1 class="p-4 text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-ctp-mauve via-ctp-red to-ctp-peach bg-clip-text text-transparent animate-gradient">
-        The Gang
-      </h1>
-    </div>
-    
-<!-- Player Name Input with Enhanced Styling -->
-    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 mb-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+  <div :if={@player_name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Create Game Card -->
+    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
       <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-        <span class="text-ctp-mauve">👤</span> Your Player Name: {@player_name}
+        <span class="text-ctp-green">🎮</span> Create New Game
       </h2>
-      <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
-        <div class="flex items-center gap-4">
-          <div class="flex-grow">
-            <.input
-              type="text"
-              name="player_name"
-              placeholder="Enter Your Name"
-              value={@player_name}
-              id="player-name-input"
-              phx-hook="SetPlayerName"
-              required
-              class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-mauve transition-colors duration-300"
-            />
-          </div>
-          <div>
-            <.button
-              type="submit"
-              class="bg-ctp-mauve hover:bg-ctp-pink transition-colors duration-300 transform hover:scale-105"
-            >
-              Update Name
-            </.button>
-          </div>
-        </div>
+      <.form for={%{}} phx-submit="create_game">
+        <.button
+          class="w-full bg-ctp-green hover:bg-ctp-teal transition-colors duration-300 transform hover:scale-105"
+          disabled={@player_name == ""}
+        >
+          Create Game
+        </.button>
       </.form>
     </div>
-
-    <div :if={@player_name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Create Game Card -->
-      <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-        <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-          <span class="text-ctp-green">🎮</span> Create New Game
-        </h2>
-        <.form for={%{}} phx-submit="create_game">
-          <.button
-            class="w-full bg-ctp-green hover:bg-ctp-teal transition-colors duration-300 transform hover:scale-105"
-            disabled={@player_name == ""}
-          >
-            Create Game
-          </.button>
-        </.form>
-      </div>
-      
-<!-- Join Game Card -->
-      <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-        <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-          <span class="text-ctp-blue">🤝</span> Join Existing Game
-        </h2>
-        <.form for={%{}} phx-submit="join_game" phx-change="validate_join">
-          <div class="mb-4">
-            <.input
-              type="text"
-              name="game_code"
-              placeholder="Game Code"
-              value={@game_code}
-              required
-              class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-blue transition-colors duration-300"
-            />
-          </div>
-          <.button
-            class="w-full bg-ctp-blue hover:bg-ctp-sapphire transition-colors duration-300 transform hover:scale-105"
-            disabled={@player_name == ""}
-          >
-            Join Game
-          </.button>
-        </.form>
-      </div>
-    </div>
     
-<!-- Active Games List with Enhanced Styling -->
-    <div class="mt-12">
+<!-- Join Game Card -->
+    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
       <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-        <span class="text-ctp-peach">🎲</span> Active Games
+        <span class="text-ctp-blue">🤝</span> Join Existing Game
       </h2>
-      <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 overflow-hidden transform hover:shadow-2xl transition-all duration-300">
-        <table class="min-w-full">
-          <thead class="bg-ctp-surface0/50">
+      <.form for={%{}} phx-submit="join_game" phx-change="validate_join">
+        <div class="mb-4">
+          <.input
+            type="text"
+            name="game_code"
+            placeholder="Game Code"
+            value={@game_code}
+            required
+            class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-blue transition-colors duration-300"
+          />
+        </div>
+        <.button
+          class="w-full bg-ctp-blue hover:bg-ctp-sapphire transition-colors duration-300 transform hover:scale-105"
+          disabled={@player_name == ""}
+        >
+          Join Game
+        </.button>
+      </.form>
+    </div>
+  </div>
+  
+<!-- Active Games List with Enhanced Styling -->
+  <div class="mt-12">
+    <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
+      <span class="text-ctp-peach">🎲</span> Active Games
+    </h2>
+    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 overflow-hidden transform hover:shadow-2xl transition-all duration-300">
+      <table class="min-w-full">
+        <thead class="bg-ctp-surface0/50">
+          <tr>
+            <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              Game ID
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              Players
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              Status
+            </th>
+            <th class="px-6 py-4 text-right text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              Action
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-ctp-surface0/50">
+          <%= if Enum.empty?(@games) do %>
             <tr>
-              <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-                Game ID
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-                Players
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-                Status
-              </th>
-              <th class="px-6 py-4 text-right text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-                Action
-              </th>
+              <td colspan="4" class="px-6 py-8 text-center text-ctp-subtext0">
+                <p class="text-lg mb-2">No active games yet!</p>
+                <p class="text-sm text-ctp-overlay0">Create one to start the fun 🎮</p>
+              </td>
             </tr>
-          </thead>
-          <tbody class="divide-y divide-ctp-surface0/50">
-            <%= if Enum.empty?(@games) do %>
-              <tr>
-                <td colspan="4" class="px-6 py-8 text-center text-ctp-subtext0">
-                  <p class="text-lg mb-2">No active games yet!</p>
-                  <p class="text-sm text-ctp-overlay0">Create one to start the fun 🎮</p>
+          <% else %>
+            <%= for {game_id, _pid} <- @games do %>
+              <% status = Games.get_game_status(game_id) %>
+              <tr class="hover:bg-ctp-surface0/30 transition-colors duration-300">
+                <td class="px-6 py-4 whitespace-nowrap text-ctp-text font-medium">{game_id}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-ctp-subtext0">
+                  <%= case Games.get_player_count(game_id) do %>
+                    <% {:ok, count} -> %>
+                      <div class="flex items-center gap-2">
+                        <span class="flex -space-x-2">
+                          <%= for _ <- 1..count do %>
+                            <span class="w-6 h-6 rounded-full bg-ctp-overlay0/30 border-2 border-ctp-surface0 flex items-center justify-center text-xs">
+                              👤
+                            </span>
+                          <% end %>
+                        </span>
+                        <span>{count} / 6</span>
+                      </div>
+                    <% _ -> %>
+                      0 / 6
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <%= case status do %>
+                    <% {:ok, :waiting} -> %>
+                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-yellow/20 text-ctp-yellow animate-pulse">
+                        ⌛ Waiting
+                      </span>
+                    <% {:ok, :playing} -> %>
+                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-green/20 text-ctp-green">
+                        🎮 In Progress
+                      </span>
+                    <% {:ok, :completed} -> %>
+                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-blue/20 text-ctp-blue">
+                        🏆 Completed
+                      </span>
+                    <% _ -> %>
+                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-overlay0/20 text-ctp-overlay0">
+                        ❓ Unknown
+                      </span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <%= if @player_name != "" do %>
+                    <.link
+                      navigate={~p"/games/#{game_id}?player_name=#{@player_name}"}
+                      class="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300"
+                    >
+                      {if status == {:ok, :waiting}, do: "Join", else: "Watch"}
+                      <span class="text-lg">
+                        {if status == {:ok, :waiting}, do: "▶", else: "👀"}
+                      </span>
+                    </.link>
+                  <% else %>
+                    <span class="text-ctp-overlay0">Enter Name</span>
+                  <% end %>
                 </td>
               </tr>
-            <% else %>
-              <%= for {game_id, _pid} <- @games do %>
-                <% status = Games.get_game_status(game_id) %>
-                <tr class="hover:bg-ctp-surface0/30 transition-colors duration-300">
-                  <td class="px-6 py-4 whitespace-nowrap text-ctp-text font-medium">{game_id}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-ctp-subtext0">
-                    <%= case Games.get_player_count(game_id) do %>
-                      <% {:ok, count} -> %>
-                        <div class="flex items-center gap-2">
-                          <span class="flex -space-x-2">
-                            <%= for _ <- 1..count do %>
-                              <span class="w-6 h-6 rounded-full bg-ctp-overlay0/30 border-2 border-ctp-surface0 flex items-center justify-center text-xs">
-                                👤
-                              </span>
-                            <% end %>
-                          </span>
-                          <span>{count} / 6</span>
-                        </div>
-                      <% _ -> %>
-                        0 / 6
-                    <% end %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <%= case status do %>
-                      <% {:ok, :waiting} -> %>
-                        <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-yellow/20 text-ctp-yellow animate-pulse">
-                          ⌛ Waiting
-                        </span>
-                      <% {:ok, :playing} -> %>
-                        <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-green/20 text-ctp-green">
-                          🎮 In Progress
-                        </span>
-                      <% {:ok, :completed} -> %>
-                        <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-blue/20 text-ctp-blue">
-                          🏆 Completed
-                        </span>
-                      <% _ -> %>
-                        <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-overlay0/20 text-ctp-overlay0">
-                          ❓ Unknown
-                        </span>
-                    <% end %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <%= if @player_name != "" do %>
-                      <.link
-                        navigate={~p"/games/#{game_id}?player_name=#{@player_name}"}
-                        class="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300"
-                      >
-                        {if status == {:ok, :waiting}, do: "Join", else: "Watch"}
-                        <span class="text-lg">
-                          {if status == {:ok, :waiting}, do: "▶", else: "👀"}
-                        </span>
-                      </.link>
-                    <% else %>
-                      <span class="text-ctp-overlay0">Enter Name</span>
-                    <% end %>
-                  </td>
-                </tr>
-              <% end %>
             <% end %>
-          </tbody>
-        </table>
-      </div>
+          <% end %>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

@@ -181,7 +181,7 @@ defmodule GangWeb.GameLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-7xl mx-auto px-4 py-8 bg-ctp-base text-ctp-text min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8 text-ctp-text min-h-screen">
       <.game_header game_id={@game_id} player={@player} />
       <.game_status game={@game} player={@player} />
 
@@ -214,7 +214,7 @@ defmodule GangWeb.GameLive do
 
   def waiting_room(assigns) do
     ~H"""
-    <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 text-center">
+    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-lg shadow-lg shadow-ctp-crust/10 p-6 text-center">
       <h2 class="text-xl font-semibold mb-4 text-ctp-text">Waiting for Players</h2>
       <p class="mb-4 text-ctp-text">
         Share this game code with your friends:
@@ -238,7 +238,7 @@ defmodule GangWeb.GameLive do
     ~H"""
     <div class="flex justify-between items-center mb-8">
       <button
-        class="px-4 py-2 rounded-lg bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-text transition-colors"
+        class="px-4 py-2 rounded-lg bg-ctp-mantle/80 backdrop-blur-sm hover:bg-ctp-surface1 text-ctp-text transition-colors"
         phx-click="back_to_lobby"
       >
         Lobby
@@ -248,7 +248,7 @@ defmodule GangWeb.GameLive do
 
     <%= if !@player do %>
       <div
-        class="bg-ctp-yellow/20 border-l-4 border-ctp-yellow text-ctp-yellow p-4 mb-8 rounded-r-lg"
+        class="bg-ctp-yellow/20 backdrop-blur-sm border-l-4 border-ctp-yellow text-ctp-yellow p-4 mb-8 rounded-r-lg"
         role="alert"
       >
         <p>You are observing this game</p>
@@ -259,7 +259,7 @@ defmodule GangWeb.GameLive do
 
   def game_status(assigns) do
     ~H"""
-    <div class="bg-ctp-mantle rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-4">
+    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-4">
       <div class="flex justify-between items-center">
         <div class="w-full">
           <.round_indicator round={@game.round} />
@@ -360,7 +360,7 @@ defmodule GangWeb.GameLive do
   def player_card(assigns) do
     ~H"""
     <div class={[
-      "bg-ctp-surface0/90 backdrop-blur rounded-lg shadow-lg p-2",
+      "bg-ctp-mantle/80 backdrop-blur-sm rounded-lg shadow-lg p-2",
       "border border-ctp-surface0/50",
       @is_current && "ring-2 ring-ctp-lavender"
     ]}>
