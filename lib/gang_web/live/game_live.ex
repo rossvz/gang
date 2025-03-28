@@ -568,7 +568,7 @@ defmodule GangWeb.GameLive do
     ~H"""
     <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
       <div class="relative w-[240px] h-[240px] md:w-[320px] md:h-[320px] lg:w-[400px] lg:h-[400px]">
-        <div class="absolute inset-4 bg-ctp-mantle/80 backdrop-blur rounded-full border border-ctp-surface0/20">
+        <div class="absolute inset-4 bg-ctp-base/80 backdrop-blur rounded-full border border-ctp-surface0/20">
           <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] md:w-[240px] lg:w-[300px]">
             <div class="text-center">
               <.community_cards cards={@community_cards} size="normal" />
