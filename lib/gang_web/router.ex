@@ -14,6 +14,10 @@ defmodule GangWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/up", GangWeb do
+    get "/", HealthController, :index
+  end
+
   scope "/", GangWeb do
     pipe_through :browser
 
