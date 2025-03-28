@@ -36,6 +36,7 @@ ENV MIX_ENV="prod"
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
+RUN mix deps.clean --all
 RUN mix deps.get --only $MIX_ENV
 RUN mkdir config
 
@@ -43,7 +44,7 @@ RUN mkdir config
 # to ensure any relevant config change will trigger the dependencies
 # to be re-compiled.
 COPY config/config.exs config/${MIX_ENV}.exs config/
-RUN mix deps.compile
+RUN mix deps.compile --force
 
 COPY priv priv
 
@@ -83,7 +84,7 @@ RUN chown nobody /app
 
 # set runner ENV
 ENV MIX_ENV="prod"
-ENV ERL_FLAGS="+JPperf true"
+# ENV ERL_FLAGS="+JPperf true"
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/gang ./
