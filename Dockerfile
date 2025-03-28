@@ -34,6 +34,7 @@ RUN mix local.hex --force && \
 # set build ENV
 ENV MIX_ENV="prod"
 
+RUN pwd
 RUN rm -rf _build
 
 # install mix dependencies
