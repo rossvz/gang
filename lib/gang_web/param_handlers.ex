@@ -2,9 +2,13 @@ defmodule GangWeb.ParamHandlers do
   import Phoenix.Component
 
   def on_mount(:extract_query_params, params, _session, socket) do
-    # Extract player_name from query parameters
+    # Extract player_name and player_id from query parameters
     player_name = params["player_name"]
+    player_id = params["player_id"]
 
-    {:cont, assign(socket, :player_name, player_name)}
+    {:cont,
+     socket
+     |> assign(:player_name, player_name)
+     |> assign(:player_id, player_id)}
   end
 end

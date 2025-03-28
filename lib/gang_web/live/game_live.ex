@@ -13,42 +13,55 @@ defmodule GangWeb.GameLive do
         }
 
   @impl true
-  def mount(%{"id" => game_id, "player_name" => player_name}, _session, socket) do
-    if connected?(socket) do
-      Games.subscribe(game_id)
-      if player_name, do: {:ok, _} = Games.join_game(game_id, player_name)
-    end
+  def mount(%{"id" => game_id} = params, _session, socket) do
+    # Get player info from either URL params or socket assigns
+    player_name = params["player_name"] || socket.assigns.player_name
+    player_id = params["player_id"] || socket.assigns.player_id
 
-    case Games.get_game(game_id) do
-      {:ok, game} ->
-        player = if player_name, do: Enum.find(game.players, &(&1.name == player_name)), else: nil
+    # Redirect to lobby if no player ID
+    if !player_id do
+      {:ok,
+       socket
+       |> put_flash(:error, "Please set your name in the lobby first")
+       |> push_navigate(to: ~p"/")}
+    else
+      if connected?(socket) do
+        Games.subscribe(game_id)
+        if player_name, do: {:ok, _} = Games.join_game(game_id, player_name, player_id)
+      end
 
-        # Get unique players and split into current and others
-        player_split = split_players(game.players, player_name)
+      case Games.get_game(game_id) do
+        {:ok, game} ->
+          player = if player_id, do: Enum.find(game.players, &(&1.id == player_id)), else: nil
 
-        socket =
-          socket
-          |> assign(game_id: game_id)
-          |> assign(player_name: player_name)
-          |> assign(game: game)
-          |> assign(player: player)
-          |> assign(selected_rank_chip: nil)
-          |> assign(player_split: player_split)
+          # Get unique players and split into current and others
+          player_split = split_players(game.players, player_id)
 
-        {:ok, socket}
+          socket =
+            socket
+            |> assign(game_id: game_id)
+            |> assign(player_name: player_name)
+            |> assign(player_id: player_id)
+            |> assign(game: game)
+            |> assign(player: player)
+            |> assign(selected_rank_chip: nil)
+            |> assign(player_split: player_split)
 
-      {:error, _} ->
-        {:ok, push_navigate(socket, to: ~p"/")}
+          {:ok, socket}
+
+        {:error, _} ->
+          {:ok, push_navigate(socket, to: ~p"/")}
+      end
     end
   end
 
   # Move player splitting logic out of template
   @spec split_players(list(map()), String.t() | nil) :: player_split()
-  defp split_players(players, current_player_name) do
-    unique_players = Enum.uniq_by(players, & &1.name)
+  defp split_players(players, current_player_id) do
+    unique_players = Enum.uniq_by(players, & &1.id)
 
-    if current_player_name do
-      current_player = Enum.find(unique_players, &(&1.name == current_player_name))
+    if current_player_id do
+      current_player = Enum.find(unique_players, &(&1.id == current_player_id))
       other_players = unique_players |> List.delete(current_player)
       %{current_player: current_player, other_players: other_players}
     else
@@ -69,7 +82,7 @@ defmodule GangWeb.GameLive do
 
     Games.claim_rank_chip(
       socket.assigns.game_id,
-      socket.assigns.player_name,
+      socket.assigns.player_id,
       rank,
       color
     )
@@ -83,7 +96,7 @@ defmodule GangWeb.GameLive do
 
     Games.claim_rank_chip(
       socket.assigns.game_id,
-      socket.assigns.player_name,
+      socket.assigns.player_id,
       rank,
       color
     )
@@ -102,7 +115,7 @@ defmodule GangWeb.GameLive do
 
     Games.claim_rank_chip_from_player(
       socket.assigns.game_id,
-      socket.assigns.player_name,
+      socket.assigns.player_id,
       from_player,
       rank,
       color
@@ -115,7 +128,7 @@ defmodule GangWeb.GameLive do
   def handle_event("return_chip", _params, socket) do
     Games.return_rank_chip(
       socket.assigns.game_id,
-      socket.assigns.player_name
+      socket.assigns.player_id
     )
 
     {:noreply, socket}
@@ -136,16 +149,16 @@ defmodule GangWeb.GameLive do
   end
 
   def handle_event("back_to_lobby", _params, socket) do
-    Games.leave_game(socket.assigns.game_id, socket.assigns.player_name)
+    Games.leave_game(socket.assigns.game_id, socket.assigns.player_id)
     {:noreply, push_navigate(socket, to: ~p"/")}
   end
 
   @impl true
   def handle_info({:game_updated, game}, socket) do
     # Update the player object and player split when game state changes
-    player_name = socket.assigns.player_name
-    player = if player_name, do: Enum.find(game.players, &(&1.name == player_name)), else: nil
-    player_split = split_players(game.players, player_name)
+    player_id = socket.assigns.player_id
+    player = if player_id, do: Enum.find(game.players, &(&1.id == player_id)), else: nil
+    player_split = split_players(game.players, player_id)
 
     {:noreply,
      socket
@@ -164,7 +177,7 @@ defmodule GangWeb.GameLive do
       class={[
         "flex items-center justify-center w-16 h-16 rounded-full text-lg font-bold shadow-md border-2",
         color_classes(@color),
-        if(@claimed_by == @player_name, do: "ring-4 ring-blue-400"),
+        if(@claimed_by && @claimed_by.id == @player.id, do: "ring-4 ring-blue-400"),
         if(@disabled, do: "opacity-50 cursor-not-allowed", else: "hover:brightness-110")
       ]}
     >
@@ -454,7 +467,7 @@ defmodule GangWeb.GameLive do
             end)
           end)
 
-        is_mine = claimed_by && claimed_by.name == @player_name
+        is_mine = claimed_by && claimed_by.id == @player.id
         can_claim_from_other = claimed && !is_mine && @player %>
 
         <div class="relative">

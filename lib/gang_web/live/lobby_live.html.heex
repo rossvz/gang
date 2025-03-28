@@ -9,7 +9,8 @@
 <!-- Player Name Input with Enhanced Styling -->
   <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 mb-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
     <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-      <span class="text-ctp-mauve">👤</span> Your Player Name: {@player_name}
+      <span class="text-ctp-mauve">👤</span>
+      Your Player Name: {@player_name} <span class="text-ctp-overlay0">({@player_id})</span>
     </h2>
     <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
       <div class="flex items-center gap-4">
@@ -155,7 +156,9 @@
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <%= if @player_name != "" do %>
                     <.link
-                      navigate={~p"/games/#{game_id}?player_name=#{@player_name}"}
+                      navigate={
+                        ~p"/games/#{game_id}?player_name=#{@player_name}&player_id=#{@player_id}"
+                      }
                       class="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300"
                     >
                       {if status == {:ok, :waiting}, do: "Join", else: "Watch"}

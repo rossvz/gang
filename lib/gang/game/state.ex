@@ -70,8 +70,8 @@ defmodule Gang.Game.State do
   @doc """
   Removes a player from the game.
   """
-  def remove_player(state, player_name) do
-    updated_players = Enum.reject(state.players, &(&1.name == player_name))
+  def remove_player(state, player_id) do
+    updated_players = Enum.reject(state.players, &(&1.id == player_id))
 
     %__MODULE__{
       state
@@ -135,8 +135,8 @@ defmodule Gang.Game.State do
   @doc """
   Claims a rank chip for a player.
   """
-  def claim_chip(state, player_name, rank, color_atom) do
-    player = Enum.find(state.players, &(&1.name == player_name))
+  def claim_chip(state, player_id, rank, color_atom) do
+    player = Enum.find(state.players, &(&1.id == player_id))
 
     if player && state.status == :playing && state.current_phase == :rank_chip_selection do
       # Check if any player in current round already has this chip
@@ -145,14 +145,11 @@ defmodule Gang.Game.State do
           Enum.any?(p.rank_chips, &(&1.rank == rank && &1.color == color_atom))
         end)
 
-      # if existing holder is the same as current player, return to unclaimed game chips
-      # TODO
-
       # Remove chip from existing holder if needed
       updated_players =
         if existing_holder do
           Enum.map(state.players, fn p ->
-            if p.name == existing_holder.name do
+            if p.id == existing_holder.id do
               # Remove the chip from this player
               updated_chips =
                 Enum.reject(p.rank_chips, &(&1.rank == rank && &1.color == color_atom))
@@ -169,7 +166,7 @@ defmodule Gang.Game.State do
       # Remove any existing chip of the same color from the claiming player
       updated_players =
         Enum.map(updated_players, fn p ->
-          if p.name == player_name do
+          if p.id == player_id do
             # Remove any existing chip of the same color
             updated_chips = Enum.reject(p.rank_chips, &(&1.color == color_atom))
             # Add the new chip
@@ -200,12 +197,12 @@ defmodule Gang.Game.State do
   @doc """
   Returns a player's chip to the unclaimed pool.
   """
-  def return_chip(state, player_name, rank, color_atom) do
+  def return_chip(state, player_id, rank, color_atom) do
     if state.status == :playing && state.current_phase == :rank_chip_selection do
       # Update the players to remove the chip
       updated_players =
         Enum.map(state.players, fn player ->
-          if player.name == player_name do
+          if player.id == player_id do
             updated_chips =
               Enum.reject(player.rank_chips, &(&1.rank == rank && &1.color == color_atom))
 
@@ -235,10 +232,10 @@ defmodule Gang.Game.State do
   @doc """
   Updates a player's connection status.
   """
-  def update_player_connection(state, player_name, connected) do
+  def update_player_connection(state, player_id, connected) do
     updated_players =
       Enum.map(state.players, fn player ->
-        if player.name == player_name do
+        if player.id == player_id do
           if connected do
             %{player | connected: true}
           else

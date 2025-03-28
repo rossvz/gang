@@ -6,8 +6,6 @@ defmodule Gang.Game.Supervisor do
   use Supervisor
   require Logger
 
-  alias Gang.Game.Game
-
   def start_link(init_arg) do
     Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end

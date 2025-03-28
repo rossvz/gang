@@ -17,31 +17,32 @@ defmodule Gang.Game.Game do
   @doc """
   Adds a player to the game.
   """
-  def add_player(code, player_name) when is_binary(code) and is_binary(player_name) do
-    GenServer.call(via_tuple(code), {:join, player_name})
+  def add_player(code, player_name, player_id \\ nil)
+      when is_binary(code) and is_binary(player_name) do
+    GenServer.call(via_tuple(code), {:join, player_name, player_id})
   end
 
   @doc """
   Removes a player from the game.
   """
-  def remove_player(code, player_name) when is_binary(code) and is_binary(player_name) do
-    GenServer.call(via_tuple(code), {:leave, player_name})
+  def remove_player(code, player_id) when is_binary(code) and is_binary(player_id) do
+    GenServer.call(via_tuple(code), {:leave, player_id})
   end
 
   @doc """
   Updates a player's connection status.
   """
-  def update_connection(code, player_name, connected)
-      when is_binary(code) and is_binary(player_name) do
-    GenServer.call(via_tuple(code), {:update_connection, player_name, connected})
+  def update_connection(code, player_id, connected)
+      when is_binary(code) and is_binary(player_id) do
+    GenServer.call(via_tuple(code), {:update_connection, player_id, connected})
   end
 
-  def join(game_pid, player_name) do
-    GenServer.call(game_pid, {:join, player_name})
+  def join(game_pid, player_name, player_id \\ nil) do
+    GenServer.call(game_pid, {:join, player_name, player_id})
   end
 
-  def leave(game_pid, player_name) do
-    GenServer.call(game_pid, {:leave, player_name})
+  def leave(game_pid, player_id) do
+    GenServer.call(game_pid, {:leave, player_id})
   end
 
   def start_game(code) when is_binary(code) do
@@ -63,25 +64,25 @@ defmodule Gang.Game.Game do
   @doc """
   Claims a rank chip.
   """
-  def claim_chip(code, player_name, rank, color)
-      when is_binary(code) and is_binary(player_name) do
-    GenServer.call(via_tuple(code), {:claim_rank_chip, player_name, rank, color})
+  def claim_chip(code, player_id, rank, color)
+      when is_binary(code) and is_binary(player_id) do
+    GenServer.call(via_tuple(code), {:claim_rank_chip, player_id, rank, color})
   end
 
-  def claim_rank_chip(game_pid, player_name, rank, color) do
-    GenServer.call(game_pid, {:claim_rank_chip, player_name, rank, color})
+  def claim_rank_chip(game_pid, player_id, rank, color) do
+    GenServer.call(game_pid, {:claim_rank_chip, player_id, rank, color})
   end
 
   @doc """
   Returns a rank chip.
   """
-  def return_chip(code, player_name, rank, color)
-      when is_binary(code) and is_binary(player_name) do
-    GenServer.call(via_tuple(code), {:return_rank_chip, player_name, rank, color})
+  def return_chip(code, player_id, rank, color)
+      when is_binary(code) and is_binary(player_id) do
+    GenServer.call(via_tuple(code), {:return_rank_chip, player_id, rank, color})
   end
 
-  def return_rank_chip(game_pid, player_name, rank, color) do
-    GenServer.call(game_pid, {:return_rank_chip, player_name, rank, color})
+  def return_rank_chip(game_pid, player_id, rank, color) do
+    GenServer.call(game_pid, {:return_rank_chip, player_id, rank, color})
   end
 
   def advance_round(code) when is_binary(code) do
@@ -100,16 +101,26 @@ defmodule Gang.Game.Game do
   end
 
   @impl true
-  def handle_call({:join, player_name}, _from, state) do
-    # Check if player is already in the game
-    if Enum.any?(state.players, &(&1.name == player_name)) do
+  def handle_call({:join, player_name, player_id}, _from, state) do
+    # Check if player is already in the game by ID first, then by name if no ID
+    existing_player =
+      cond do
+        player_id -> Enum.find(state.players, &(&1.id == player_id))
+        true -> Enum.find(state.players, &(&1.name == player_name))
+      end
+
+    if existing_player do
       # Just update connection status to true
-      updated_state = State.update_player_connection(state, player_name, true)
+      updated_state = State.update_player_connection(state, existing_player.id, true)
       broadcast_update(updated_state)
       {:reply, {:ok, updated_state}, updated_state}
     else
       # Add new player
-      player = Player.new(player_name)
+      player =
+        if player_id,
+          do: %{Player.new(player_name) | id: player_id},
+          else: Player.new(player_name)
+
       updated_state = State.add_player(state, player)
       broadcast_update(updated_state)
       {:reply, {:ok, updated_state}, updated_state}
@@ -117,18 +128,18 @@ defmodule Gang.Game.Game do
   end
 
   @impl true
-  def handle_call({:leave, player_name}, _from, state) do
-    updated_state = State.update_player_connection(state, player_name, false)
+  def handle_call({:leave, player_id}, _from, state) do
+    updated_state = State.update_player_connection(state, player_id, false)
     broadcast_update(updated_state)
 
     # wait a while to see if they come back, otherwise assume they're gone
-    Process.send_after(self(), {:permanently_remove_player, player_name}, 1000)
+    Process.send_after(self(), {:permanently_remove_player, player_id}, 1000)
     {:reply, {:ok, updated_state}, updated_state}
   end
 
   @impl true
-  def handle_call({:update_connection, player_name, connected}, _from, state) do
-    updated_state = State.update_player_connection(state, player_name, connected)
+  def handle_call({:update_connection, player_id, connected}, _from, state) do
+    updated_state = State.update_player_connection(state, player_id, connected)
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
   end
@@ -150,15 +161,15 @@ defmodule Gang.Game.Game do
   end
 
   @impl true
-  def handle_call({:claim_rank_chip, player_name, rank, color}, _from, state) do
-    updated_state = State.claim_chip(state, player_name, rank, color)
+  def handle_call({:claim_rank_chip, player_id, rank, color}, _from, state) do
+    updated_state = State.claim_chip(state, player_id, rank, color)
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
   end
 
   @impl true
-  def handle_call({:return_rank_chip, player_name, rank, color}, _from, state) do
-    updated_state = State.return_chip(state, player_name, rank, color)
+  def handle_call({:return_rank_chip, player_id, rank, color}, _from, state) do
+    updated_state = State.return_chip(state, player_id, rank, color)
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
   end
@@ -205,9 +216,8 @@ defmodule Gang.Game.Game do
   end
 
   @impl true
-  def handle_info({:permanently_remove_player, player_name}, state) do
-    IO.puts("Permanently removing player #{player_name}")
-    updated_state = State.remove_player(state, player_name)
+  def handle_info({:permanently_remove_player, player_id}, state) do
+    updated_state = State.remove_player(state, player_id)
     broadcast_update(updated_state)
     {:noreply, updated_state}
   end

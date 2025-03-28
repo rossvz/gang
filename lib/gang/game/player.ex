@@ -6,6 +6,7 @@ defmodule Gang.Game.Player do
   alias Gang.Game.{Card, RankChip}
 
   @type t :: %__MODULE__{
+          id: String.t(),
           name: String.t(),
           cards: list(Card.t()),
           rank_chips: list(RankChip.t()),
@@ -14,6 +15,7 @@ defmodule Gang.Game.Player do
         }
 
   defstruct [
+    :id,
     :name,
     cards: [],
     rank_chips: [],
@@ -26,6 +28,7 @@ defmodule Gang.Game.Player do
   """
   def new(name) when is_binary(name) do
     %__MODULE__{
+      id: Ecto.UUID.generate(),
       name: name,
       last_activity: DateTime.utc_now()
     }

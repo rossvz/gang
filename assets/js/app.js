@@ -25,17 +25,24 @@ import topbar from "../vendor/topbar";
 const Hooks = {
   SetPlayerName: {
     mounted() {
-      // Check if we already have a player name in localStorage
+      // Check if we already have a player name and ID in localStorage
       const savedName = localStorage.getItem("player_name");
+      const savedId = localStorage.getItem("player_id");
       if (savedName) {
         this.el.value = savedName;
-        // Push the saved name to the server
-        this.pushEvent("set_player_name", { player_name: savedName });
+        // Push the saved name and ID to the server
+        this.pushEvent("set_player_name", {
+          player_name: savedName,
+          player_id: savedId,
+        });
       }
 
       // Listen for the custom event when server saves the name
-      this.handleEvent("set_player_name", ({ player_name }) => {
+      this.handleEvent("set_player_name", ({ player_name, player_id }) => {
         localStorage.setItem("player_name", player_name);
+        if (player_id) {
+          localStorage.setItem("player_id", player_id);
+        }
       });
     },
   },
@@ -46,10 +53,15 @@ let csrfToken = document
   .getAttribute("content");
 
 const currentPlayerName = localStorage.getItem("player_name") || "";
+const currentPlayerId = localStorage.getItem("player_id");
 
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: { _csrf_token: csrfToken, player_name: currentPlayerName },
+  params: {
+    _csrf_token: csrfToken,
+    player_name: currentPlayerName,
+    player_id: currentPlayerId,
+  },
   hooks: Hooks,
 });
 

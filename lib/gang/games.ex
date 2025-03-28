@@ -55,18 +55,23 @@ defmodule Gang.Games do
   Returns {:ok, game_pid} on success.
   Returns {:error, reason} if the game doesn't exist.
   """
-  def join_game(code, player_name) when is_binary(player_name) do
+  def join_game(code, player_name, player_id \\ nil) when is_binary(player_name) do
     if GameSupervisor.game_exists?(code) do
-      # Check if player already exists
-      with {:ok, state} <- get_game(code),
-           existing_player = Enum.find(state.players, &(&1.name == player_name)) do
+      # Check if player already exists by ID first, then by name if no ID
+      with {:ok, state} <- get_game(code) do
+        existing_player =
+          cond do
+            player_id -> Enum.find(state.players, &(&1.id == player_id))
+            true -> Enum.find(state.players, &(&1.name == player_name))
+          end
+
         if existing_player do
           # Update connection status
-          Game.update_connection(code, player_name, true)
+          Game.update_connection(code, existing_player.id, true)
           {:ok, existing_player}
         else
           # Add new player
-          Game.add_player(code, player_name)
+          Game.add_player(code, player_name, player_id)
 
           # Broadcast game update
           broadcast_update(code)
@@ -82,9 +87,9 @@ defmodule Gang.Games do
   @doc """
   Leaves a game, removing the player.
   """
-  def leave_game(code, player_name) do
+  def leave_game(code, player_id) do
     if GameSupervisor.game_exists?(code) do
-      result = Game.remove_player(code, player_name)
+      result = Game.remove_player(code, player_id)
       broadcast_update(code)
       result
     else
@@ -95,9 +100,9 @@ defmodule Gang.Games do
   @doc """
   Updates a player's connection status.
   """
-  def update_connection(code, player_name, connected) do
+  def update_connection(code, player_id, connected) do
     if GameSupervisor.game_exists?(code) do
-      result = Game.update_connection(code, player_name, connected)
+      result = Game.update_connection(code, player_id, connected)
       broadcast_update(code)
       result
     else
@@ -121,9 +126,9 @@ defmodule Gang.Games do
   @doc """
   Claims a rank chip for a player.
   """
-  def claim_rank_chip(code, player_name, rank, color) do
+  def claim_rank_chip(code, player_id, rank, color) do
     if GameSupervisor.game_exists?(code) do
-      result = Game.claim_chip(code, player_name, rank, color)
+      result = Game.claim_chip(code, player_id, rank, color)
       broadcast_update(code)
       result
     else
@@ -134,12 +139,12 @@ defmodule Gang.Games do
   @doc """
   Claims a rank chip from another player.
   """
-  def claim_rank_chip_from_player(code, player_name, from_player, rank, color) do
+  def claim_rank_chip_from_player(code, player_id, from_player_id, rank, color) do
     if GameSupervisor.game_exists?(code) do
       # First remove the chip from the original player
-      Game.return_chip(code, from_player, rank, color)
+      Game.return_chip(code, from_player_id, rank, color)
       # Then claim it for the new player
-      result = Game.claim_chip(code, player_name, rank, color)
+      result = Game.claim_chip(code, player_id, rank, color)
       broadcast_update(code)
       result
     else
@@ -150,19 +155,19 @@ defmodule Gang.Games do
   @doc """
   Alias for claim_rank_chip.
   """
-  def claim_chip(code, player_name, rank, color) do
-    claim_rank_chip(code, player_name, rank, color)
+  def claim_chip(code, player_id, rank, color) do
+    claim_rank_chip(code, player_id, rank, color)
   end
 
   @doc """
   Returns a player's rank chip to the unclaimed pool.
   """
-  def return_rank_chip(code, player_name) do
+  def return_rank_chip(code, player_id) do
     if GameSupervisor.game_exists?(code) do
       with {:ok, state} <- get_game(code),
-           player = Enum.find(state.players, &(&1.name == player_name)),
+           player = Enum.find(state.players, &(&1.id == player_id)),
            chip = Enum.find(player.rank_chips, &(&1.color == state.current_round_color)) do
-        result = Game.return_chip(code, player_name, chip.rank, chip.color)
+        result = Game.return_chip(code, player_id, chip.rank, chip.color)
         broadcast_update(code)
         result
       else
@@ -177,9 +182,9 @@ defmodule Gang.Games do
   @doc """
   Alias for return_rank_chip that accepts specific rank and color.
   """
-  def return_chip(code, player_name, rank, color) do
+  def return_chip(code, player_id, rank, color) do
     if GameSupervisor.game_exists?(code) do
-      result = Game.return_chip(code, player_name, rank, color)
+      result = Game.return_chip(code, player_id, rank, color)
       broadcast_update(code)
       result
     else
