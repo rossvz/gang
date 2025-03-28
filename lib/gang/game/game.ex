@@ -1,4 +1,4 @@
-defmodule Gang.Game.Game do
+defmodule Gang.Game do
   @moduledoc """
   Represents an active game session. This is the GenServer that manages the game state.
   """
@@ -185,38 +185,18 @@ defmodule Gang.Game.Game do
   @impl true
   def handle_call(:advance_round, _from, state) do
     updated_state =
-      if state.all_rank_chips_claimed? do
-        if state.round == 4 do
-          # Final round evaluation
-          evaluated_state = Evaluator.evaluate_round(state)
+      cond do
+        # If we're in round 4 and not in evaluation phase yet, evaluate hands
+        state.round == 4 && state.current_phase != :evaluation ->
+          Evaluator.evaluate_round(state)
 
-          # If game is not over, start a new hand (deal new cards, reset to round 1, etc)
-          if evaluated_state.status != :completed do
-            # Shuffle a new deck and deal cards to each player
-            deck = Deck.new() |> Deck.shuffle()
-
-            {players_with_cards, remaining_deck} =
-              deal_player_cards(evaluated_state.players, deck)
-
-            %{
-              evaluated_state
-              | round: 1,
-                current_phase: :rank_chip_selection,
-                current_round_color: :white,
-                players: players_with_cards,
-                deck: remaining_deck,
-                community_cards: [nil, nil, nil, nil, nil],
-                all_rank_chips_claimed?: false
-            }
-          else
-            evaluated_state
-          end
-        else
-          # Advance to next round
+        # If we're in evaluation phase, advance to next round
+        state.current_phase == :evaluation ->
           State.advance_round(state)
-        end
-      else
-        state
+
+        # Otherwise just advance normally
+        true ->
+          State.advance_round(state)
       end
 
     broadcast_update(updated_state)

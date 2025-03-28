@@ -3,7 +3,7 @@ defmodule Gang.Games do
   The Games context, providing a higher-level API for interacting with games.
   """
 
-  alias Gang.Game.Game
+  alias Gang.Game
   alias Gang.Game.Supervisor, as: GameSupervisor
   alias Phoenix.PubSub
 

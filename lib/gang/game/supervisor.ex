@@ -28,7 +28,7 @@ defmodule Gang.Game.Supervisor do
 
     case DynamicSupervisor.start_child(
            Gang.GameDynamicSupervisor,
-           {Gang.Game.Game, code}
+           {Gang.Game, code}
          ) do
       {:ok, _pid} -> {:ok, code}
       {:error, reason} -> {:error, reason}

@@ -37,12 +37,22 @@ defmodule Gang.Game.Evaluator do
     # Check if the ordering is correct (weakest to strongest)
     is_correct_order = evaluate_order(ordered_players, player_hands)
 
-    # Update the state with a vault or alarm
+    # Update the state with a vault or alarm and store evaluated hands
     updated_state =
       if is_correct_order do
-        %State{state | vaults: state.vaults + 1}
+        %State{
+          state
+          | vaults: state.vaults + 1,
+            evaluated_hands: player_hands,
+            current_phase: :evaluation
+        }
       else
-        %State{state | alarms: state.alarms + 1}
+        %State{
+          state
+          | alarms: state.alarms + 1,
+            evaluated_hands: player_hands,
+            current_phase: :evaluation
+        }
       end
 
     # Check if the game is over

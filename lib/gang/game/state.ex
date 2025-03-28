@@ -22,7 +22,8 @@ defmodule Gang.Game.State do
           all_rank_chips_claimed?: boolean(),
           deck: list(Card.t()),
           game_start: DateTime.t() | nil,
-          last_active: DateTime.t()
+          last_active: DateTime.t(),
+          evaluated_hands: map() | nil
         }
 
   defstruct [
@@ -38,7 +39,8 @@ defmodule Gang.Game.State do
     all_rank_chips_claimed?: false,
     deck: [],
     game_start: nil,
-    last_active: DateTime.utc_now()
+    last_active: DateTime.utc_now(),
+    evaluated_hands: nil
   ]
 
   @doc """
@@ -109,26 +111,51 @@ defmodule Gang.Game.State do
   Advances the game to the next round.
   """
   def advance_round(state) do
-    if state.status != :playing || state.round >= 5 do
-      state
-    else
-      # Update round number and color
-      new_round = state.round + 1
-      new_color = get_round_color(new_round)
-
-      # Deal community cards based on the round
-      {updated_community_cards, remaining_deck} =
-        deal_community_cards(state.community_cards, state.deck, new_round)
-
-      %__MODULE__{
+    cond do
+      # Don't advance if game is not in playing state
+      state.status != :playing ->
         state
-        | round: new_round,
-          current_round_color: new_color,
-          all_rank_chips_claimed?: false,
-          community_cards: updated_community_cards,
-          deck: remaining_deck,
-          last_active: DateTime.utc_now()
-      }
+
+      # Reset to round 1 if we're at round 5
+      state.round == 5 ->
+        deck = Deck.new() |> Deck.shuffle()
+        {players_with_cards, remaining_deck} = deal_player_cards(state.players, deck)
+
+        %{
+          state
+          | round: 1,
+            current_phase: :rank_chip_selection,
+            current_round_color: :white,
+            players: players_with_cards,
+            deck: remaining_deck,
+            community_cards: [nil, nil, nil, nil, nil],
+            all_rank_chips_claimed?: false,
+            evaluated_hands: nil
+        }
+
+      # Don't advance if we're already at max round
+      state.round > 5 ->
+        state
+
+      # Normal round advancement
+      true ->
+        new_round = state.round + 1
+        new_color = get_round_color(new_round)
+
+        {updated_community_cards, remaining_deck} =
+          deal_community_cards(state.community_cards, state.deck, new_round)
+
+        %__MODULE__{
+          state
+          | round: new_round,
+            current_round_color: new_color,
+            all_rank_chips_claimed?: false,
+            community_cards: updated_community_cards,
+            deck: remaining_deck,
+            current_phase: :rank_chip_selection,
+            evaluated_hands: nil,
+            last_active: DateTime.utc_now()
+        }
     end
   end
 

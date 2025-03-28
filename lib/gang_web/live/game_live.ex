@@ -141,6 +141,12 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
+  def handle_info(:advance_after_evaluation, socket) do
+    Games.advance_round(socket.assigns.game_id)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("select_rank_chip", %{"rank" => rank, "color" => color}, socket) do
     {rank, _} = Integer.parse(rank)
     color = String.to_existing_atom(color)
@@ -349,21 +355,58 @@ defmodule GangWeb.GameLive do
 
       <%= if @game.status == :playing && @player do %>
         <%= if @game.current_phase == :rank_chip_selection && @game.all_rank_chips_claimed? do %>
-          <%= if @game.round < 4 do %>
-            <button
-              class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
-              phx-click="continue"
-            >
-              Next Round
-            </button>
-          <% else %>
-            <button
-              class="px-4 py-2 rounded-lg bg-ctp-mauve hover:bg-ctp-pink text-ctp-base font-medium transition-colors"
-              phx-click="continue"
-            >
-              End Round
-            </button>
-          <% end %>
+          <button
+            :if={@game.round < 4}
+            class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
+            phx-click="continue"
+          >
+            Next Round
+          </button>
+          <button
+            :if={@game.round == 4}
+            class="px-4 py-2 rounded-lg bg-ctp-mauve hover:bg-ctp-pink text-ctp-base font-medium transition-colors"
+            phx-click="continue"
+          >
+            Evaluate Hands
+          </button>
+          <button
+            :if={@game.round == 5}
+            class="px-4 py-2 rounded-lg bg-ctp-mauve hover:bg-ctp-pink text-ctp-base font-medium transition-colors"
+            phx-click="continue"
+          >
+            Evaluate Hands
+          </button>
+        <% end %>
+
+        <%= if @game.current_phase == :evaluation do %>
+          <div class="flex flex-col items-center gap-4">
+            <div class="text-center">
+              <div class="text-lg font-bold mb-2">
+                <%= if @game.vaults >= 3 do %>
+                  <span class="text-ctp-green">Victory! You've secured the vault!</span>
+                <% else %>
+                  <%= if @game.alarms >= 3 do %>
+                    <span class="text-ctp-red">Game Over! Too many alarms triggered!</span>
+                  <% else %>
+                    <%= if @game.vaults > @game.vaults - 1 do %>
+                      <span class="text-ctp-green">Success! Vault secured!</span>
+                    <% else %>
+                      <span class="text-ctp-red">Alert! Alarm triggered!</span>
+                    <% end %>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+
+            <%= unless @game.status == :completed do %>
+              <button
+                class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
+                phx-click="continue"
+              >
+                Deal Next Hand
+              </button>
+            <% end %>
+          </div>
         <% end %>
       <% end %>
     </div>
@@ -392,13 +435,56 @@ defmodule GangWeb.GameLive do
       <.player_rank_chips player={@player} size={@size} />
 
       <%= if @show_cards do %>
-        <div class="flex justify-center gap-0.5">
-          <%= for card <- @player.cards do %>
-            <.card card={card} size={@card_size} />
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-center gap-0.5">
+            <%= for card <- @player.cards do %>
+              <.card card={card} size={@card_size} />
+            <% end %>
+          </div>
+          <%= if @game.current_phase == :evaluation && @game.evaluated_hands do %>
+            <.hand_result hand={Map.get(@game.evaluated_hands, @player.name)} size={@size} />
           <% end %>
         </div>
       <% end %>
     </div>
+    """
+  end
+
+  def hand_result(assigns) do
+    ~H"""
+    <%= if @hand do %>
+      <div class={[
+        "text-center font-medium",
+        @size == "small" && "text-xs",
+        @size == "normal" && "text-sm",
+        @size == "large" && "text-base"
+      ]}>
+        <span class="text-ctp-mauve">
+          <%= case elem(@hand, 0) do %>
+            <% :royal_flush -> %>
+              Royal Flush
+            <% :straight_flush -> %>
+              Straight Flush
+            <% :four_of_a_kind -> %>
+              Four of a Kind
+            <% :full_house -> %>
+              Full House
+            <% :flush -> %>
+              Flush
+            <% :straight -> %>
+              Straight
+            <% :three_of_a_kind -> %>
+              Three of a Kind
+            <% :two_pair -> %>
+              Two Pair
+            <% :pair -> %>
+              Pair
+            <% :high_card -> %>
+              High Card
+          <% end %>
+        </span>
+      </div>
+    <% end %>
     """
   end
 
@@ -516,7 +602,8 @@ defmodule GangWeb.GameLive do
               is_current={false}
               size="small"
               card_size="small"
-              show_cards={@game.round == 5}
+              show_cards={@game.round == 5 || @game.current_phase == :evaluation}
+              game={@game}
             />
           <% end %>
         </div>
@@ -551,9 +638,17 @@ defmodule GangWeb.GameLive do
           <div class="w-full flex justify-center items-center py-2">
             <.player_rank_chips player={@player_split.current_player} size="normal" />
           </div>
-          <div class="flex justify-center gap-2">
-            <%= for card <- @player_split.current_player.cards do %>
-              <.card card={card} size="normal" />
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-center gap-2">
+              <%= for card <- @player_split.current_player.cards do %>
+                <.card card={card} size="normal" />
+              <% end %>
+            </div>
+            <%= if @game.current_phase == :evaluation && @game.evaluated_hands do %>
+              <.hand_result
+                hand={Map.get(@game.evaluated_hands, @player_split.current_player.name)}
+                size="normal"
+              />
             <% end %>
           </div>
         </div>
@@ -629,7 +724,10 @@ defmodule GangWeb.GameLive do
           is_current={player.name == @player_name}
           size="normal"
           card_size="normal"
-          show_cards={@game.round == 5 || player.name == @player_name}
+          show_cards={
+            @game.round == 5 || @game.current_phase == :evaluation || player.name == @player_name
+          }
+          game={@game}
         />
       </div>
     <% end %>
