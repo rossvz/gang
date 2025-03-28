@@ -19,7 +19,7 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: false
-  host: gang.rossvz
+  host: 100.84.47.110
   # Proxy connects to your container on port 80 by default.
   app_port: 4090
 
