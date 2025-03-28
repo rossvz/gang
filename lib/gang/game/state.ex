@@ -145,6 +145,9 @@ defmodule Gang.Game.State do
           Enum.any?(p.rank_chips, &(&1.rank == rank && &1.color == color_atom))
         end)
 
+      # if existing holder is the same as current player, return to unclaimed game chips
+      # TODO
+
       # Remove chip from existing holder if needed
       updated_players =
         if existing_holder do

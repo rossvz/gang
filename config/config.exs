@@ -20,7 +20,8 @@ config :gang, GangWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Gang.PubSub,
-  live_view: [signing_salt: "7tMeBnS+"]
+  live_view: [signing_salt: "7tMeBnS+"],
+  check_origin: false
 
 # Configures the mailer
 #

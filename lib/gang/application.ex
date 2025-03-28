@@ -9,7 +9,7 @@ defmodule Gang.Application do
   def start(_type, _args) do
     children = [
       GangWeb.Telemetry,
-      Gang.Repo,
+      # Gang.Repo,
       {DNSCluster, query: Application.get_env(:gang, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Gang.PubSub},
       # Start the Finch HTTP client for sending emails
