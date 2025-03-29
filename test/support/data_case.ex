@@ -18,27 +18,27 @@ defmodule Gang.DataCase do
 
   using do
     quote do
-      alias Gang.Repo
+      # alias Gang.Repo
 
-      import Ecto
-      import Ecto.Changeset
-      import Ecto.Query
+      # import Ecto
+      # import Ecto.Changeset
+      # import Ecto.Query
       import Gang.DataCase
     end
   end
 
-  setup tags do
-    Gang.DataCase.setup_sandbox(tags)
+  setup _tags do
+    # Gang.DataCase.setup_sandbox(tags)
     :ok
   end
 
-  @doc """
-  Sets up the sandbox based on the test tags.
-  """
-  def setup_sandbox(tags) do
-    pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Gang.Repo, shared: not tags[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
-  end
+  # @doc """
+  # Sets up the sandbox based on the test tags.
+  # """
+  # def setup_sandbox(tags) do
+  #   pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Gang.Repo, shared: not tags[:async])
+  #   on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+  # end
 
   @doc """
   A helper that transforms changeset errors into a map of messages.

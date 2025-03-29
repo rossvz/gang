@@ -116,15 +116,5 @@ defmodule GangWeb.LobbyLive do
 
   defp list_games do
     Games.list_games()
-    |> Enum.map(fn {game_id, _pid} ->
-      {:ok, status} = Games.get_game_status(game_id)
-      {:ok, count} = Games.get_player_count(game_id)
-
-      %{
-        game_id: game_id,
-        status: status,
-        count: count || 0
-      }
-    end)
   end
 end

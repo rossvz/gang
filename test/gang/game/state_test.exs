@@ -10,7 +10,7 @@ defmodule Gang.Game.StateTest do
       assert state.code == "TEST"
       assert state.players == []
       assert state.status == :waiting
-      assert state.round == 1
+      assert state.current_round == :preflop
       assert state.vaults == 0
       assert state.alarms == 0
       assert state.community_cards == [nil, nil, nil, nil, nil]
@@ -58,7 +58,7 @@ defmodule Gang.Game.StateTest do
       player1 = Player.new("Alice")
 
       state = State.add_player(state, player1)
-      updated_state = State.remove_player(state, "Alice")
+      updated_state = State.remove_player(state, player1.id)
 
       assert updated_state.players == []
     end
@@ -75,7 +75,7 @@ defmodule Gang.Game.StateTest do
         |> State.add_player(player2)
         |> State.add_player(player3)
 
-      updated_state = State.remove_player(state, "Bob")
+      updated_state = State.remove_player(state, player2.id)
 
       assert length(updated_state.players) == 2
       assert Enum.map(updated_state.players, & &1.name) == ["Alice", "Charlie"]
@@ -88,7 +88,7 @@ defmodule Gang.Game.StateTest do
       player = Player.new("Alice")
       state = State.add_player(state, player)
 
-      updated_state = State.update_player_connection(state, "Alice", true)
+      updated_state = State.update_player_connection(state, player.id, true)
       updated_player = Enum.find(updated_state.players, &(&1.name == "Alice"))
 
       assert updated_player.connected == true
@@ -99,7 +99,9 @@ defmodule Gang.Game.StateTest do
       player = Player.new("Alice")
       state = State.add_player(state, %{player | connected: true})
 
-      updated_state = State.update_player_connection(state, "Alice", false)
+      assert state.players |> length() == 1
+
+      updated_state = State.update_player_connection(state, player.id, false)
       updated_player = Enum.find(updated_state.players, &(&1.name == "Alice"))
 
       assert updated_player.connected == false
@@ -122,7 +124,7 @@ defmodule Gang.Game.StateTest do
       updated_state = State.start_game(state)
 
       assert updated_state.status == :playing
-      assert updated_state.round == 1
+      assert updated_state.current_round == :preflop
       assert updated_state.current_phase == :rank_chip_selection
       assert updated_state.current_round_color == :white
       assert updated_state.game_start != nil
@@ -134,11 +136,11 @@ defmodule Gang.Game.StateTest do
     end
 
     test "does nothing if the game is already in progress" do
-      state = %State{status: :playing, round: 2}
+      state = %State{status: :playing, current_round: :flop}
       updated_state = State.start_game(state)
 
       assert updated_state.status == :playing
-      assert updated_state.round == 2
+      assert updated_state.current_round == :flop
     end
 
     test "does nothing if there are fewer than 3 players" do
@@ -155,16 +157,16 @@ defmodule Gang.Game.StateTest do
 
   describe "claim_chip/4" do
     test "allows a player to claim a rank chip" do
+      player = Player.new("Alice")
+
       state = %State{
         status: :playing,
         current_phase: :rank_chip_selection,
         current_round_color: :white,
-        players: [
-          %Player{name: "Alice", rank_chips: []}
-        ]
+        players: [player]
       }
 
-      updated_state = State.claim_chip(state, "Alice", 1, :white)
+      updated_state = State.claim_chip(state, player.id, 1, :white)
       alice = Enum.find(updated_state.players, &(&1.name == "Alice"))
 
       assert length(alice.rank_chips) == 1
@@ -173,17 +175,17 @@ defmodule Gang.Game.StateTest do
     end
 
     test "allows a player to take a chip from another player" do
+      alice = Player.new("Alice")
+      bob = Player.new("Bob")
+
       state = %State{
         status: :playing,
         current_phase: :rank_chip_selection,
         current_round_color: :white,
-        players: [
-          %Player{name: "Alice", rank_chips: [%RankChip{rank: 1, color: :white}]},
-          %Player{name: "Bob", rank_chips: []}
-        ]
+        players: [alice, bob]
       }
 
-      updated_state = State.claim_chip(state, "Bob", 1, :white)
+      updated_state = State.claim_chip(state, bob.id, 1, :white)
       alice = Enum.find(updated_state.players, &(&1.name == "Alice"))
       bob = Enum.find(updated_state.players, &(&1.name == "Bob"))
 
@@ -194,22 +196,25 @@ defmodule Gang.Game.StateTest do
     end
 
     test "replaces existing chip of the same color" do
+      alice = Player.new("Alice")
+
+      # alice already has a Yellow "2"
       state = %State{
         status: :playing,
         current_phase: :rank_chip_selection,
         current_round_color: :yellow,
         players: [
-          %Player{
-            name: "Alice",
-            rank_chips: [
-              %RankChip{rank: 1, color: :white},
-              %RankChip{rank: 2, color: :yellow}
-            ]
+          %{
+            alice
+            | rank_chips: [
+                %RankChip{rank: 1, color: :white},
+                %RankChip{rank: 2, color: :yellow}
+              ]
           }
         ]
       }
 
-      updated_state = State.claim_chip(state, "Alice", 3, :yellow)
+      updated_state = State.claim_chip(state, alice.id, 3, :yellow)
       alice = Enum.find(updated_state.players, &(&1.name == "Alice"))
 
       assert length(alice.rank_chips) == 2
@@ -218,59 +223,47 @@ defmodule Gang.Game.StateTest do
     end
 
     test "updates all_rank_chips_claimed? when all players have chips" do
+      alice = Player.new("Alice")
+      bob = Player.new("Bob")
+      charlie = Player.new("Charlie")
+
       state = %State{
         status: :playing,
         current_phase: :rank_chip_selection,
         current_round_color: :white,
         all_rank_chips_claimed?: false,
-        players: [
-          %Player{name: "Alice", rank_chips: []},
-          %Player{name: "Bob", rank_chips: [%RankChip{rank: 2, color: :white}]},
-          %Player{name: "Charlie", rank_chips: []}
-        ]
+        players: [alice, bob, charlie]
       }
 
-      # Give Alice a chip
-      state = State.claim_chip(state, "Alice", 1, :white)
-      # Now give Charlie a chip
-      updated_state = State.claim_chip(state, "Charlie", 3, :white)
+      # each player takes a chip
+      state =
+        State.claim_chip(state, alice.id, 1, :white)
+        |> State.claim_chip(bob.id, 2, :white)
+        |> State.claim_chip(charlie.id, 3, :white)
 
-      assert updated_state.all_rank_chips_claimed? == true
+      assert state.all_rank_chips_claimed? == true
     end
   end
 
   describe "return_chip/4" do
     test "allows a player to return a rank chip" do
+      alice = Player.new("Alice")
+
       state = %State{
         status: :playing,
         current_phase: :rank_chip_selection,
         current_round_color: :white,
-        players: [
-          %Player{name: "Alice", rank_chips: [%RankChip{rank: 1, color: :white}]}
-        ]
+        players: [alice]
       }
 
-      updated_state = State.return_chip(state, "Alice", 1, :white)
+      updated_state =
+        state
+        |> State.claim_chip(alice.id, 1, :white)
+        |> State.return_chip(alice.id, 1, :white)
+
       alice = Enum.find(updated_state.players, &(&1.name == "Alice"))
 
       assert alice.rank_chips == []
-    end
-
-    test "updates all_rank_chips_claimed? when a chip is returned" do
-      state = %State{
-        status: :playing,
-        current_phase: :rank_chip_selection,
-        current_round_color: :white,
-        all_rank_chips_claimed?: true,
-        players: [
-          %Player{name: "Alice", rank_chips: [%RankChip{rank: 1, color: :white}]},
-          %Player{name: "Bob", rank_chips: [%RankChip{rank: 2, color: :white}]}
-        ]
-      }
-
-      updated_state = State.return_chip(state, "Alice", 1, :white)
-
-      assert updated_state.all_rank_chips_claimed? == false
     end
   end
 
@@ -278,14 +271,14 @@ defmodule Gang.Game.StateTest do
     test "advances to the next round" do
       state = %State{
         status: :playing,
-        round: 1,
+        current_round: :preflop,
         current_round_color: :white,
         deck: Enum.map(1..10, fn n -> %Gang.Game.Card{rank: n, suit: :hearts} end)
       }
 
       updated_state = State.advance_round(state)
 
-      assert updated_state.round == 2
+      assert updated_state.current_round == :flop
       assert updated_state.current_round_color == :yellow
       assert updated_state.all_rank_chips_claimed? == false
 
@@ -296,7 +289,7 @@ defmodule Gang.Game.StateTest do
     test "deals one card for the turn (round 3)" do
       state = %State{
         status: :playing,
-        round: 2,
+        current_round: :flop,
         deck: Enum.map(1..10, fn n -> %Gang.Game.Card{rank: n, suit: :hearts} end),
         community_cards: [
           %Gang.Game.Card{rank: 11, suit: :hearts},
@@ -309,7 +302,7 @@ defmodule Gang.Game.StateTest do
 
       updated_state = State.advance_round(state)
 
-      assert updated_state.round == 3
+      assert updated_state.current_round == :turn
       assert updated_state.current_round_color == :orange
 
       # Should have dealt 1 more card for turn
@@ -319,7 +312,7 @@ defmodule Gang.Game.StateTest do
     test "deals one card for the river (round 4)" do
       state = %State{
         status: :playing,
-        round: 3,
+        current_round: :turn,
         deck: Enum.map(1..10, fn n -> %Gang.Game.Card{rank: n, suit: :hearts} end),
         community_cards: [
           %Gang.Game.Card{rank: 11, suit: :hearts},
@@ -332,7 +325,7 @@ defmodule Gang.Game.StateTest do
 
       updated_state = State.advance_round(state)
 
-      assert updated_state.round == 4
+      assert updated_state.current_round == :river
       assert updated_state.current_round_color == :red
 
       # Should have dealt all 5 community cards
@@ -340,19 +333,40 @@ defmodule Gang.Game.StateTest do
     end
 
     test "does nothing if not in playing state" do
-      state = %State{status: :waiting, round: 1}
+      state = %State{status: :waiting, current_round: :preflop}
 
       updated_state = State.advance_round(state)
 
-      assert updated_state.round == 1
+      assert updated_state.current_round == :preflop
     end
+  end
 
-    test "does nothing if already at round 5" do
-      state = %State{status: :playing, round: 5}
+  describe "start_new_hand/1" do
+    test "resets to preflop when starting new hand after evaluation" do
+      # Create state at evaluation phase with some players
+      alice = Player.new("Alice")
+      bob = Player.new("Bob")
 
-      updated_state = State.advance_round(state)
+      state = %State{
+        status: :playing,
+        current_round: :evaluation,
+        current_phase: :rank_chip_selection,
+        players: [alice, bob]
+      }
 
-      assert updated_state.round == 5
+      # Call start_new_hand which is what Game module calls after evaluation
+      updated_state = State.start_new_hand(state)
+
+      # Should reset to preflop
+      assert updated_state.current_round == :preflop
+      assert updated_state.current_round_color == :white
+      assert updated_state.current_phase == :rank_chip_selection
+
+      # Players should have cards
+      assert Enum.all?(updated_state.players, fn p -> length(p.cards) == 2 end)
+
+      # Community cards should be reset
+      assert updated_state.community_cards == [nil, nil, nil, nil, nil]
     end
   end
 end

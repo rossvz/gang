@@ -1,13 +1,30 @@
 defmodule Gang.Game.Evaluator do
   @moduledoc """
   Evaluates the results of a round and determines if players get a vault or an alarm.
+
+  This module is responsible for:
+  1. Evaluating poker hands of players
+  2. Comparing their hand strengths to rank chip predictions
+  3. Awarding vaults (success) or alarms (failure) based on hand ranking correctness
+  4. Determining if the game is complete (3 vaults or 3 alarms)
   """
 
-  alias Gang.Game.{HandEvaluator, State}
+  alias Gang.Game.HandEvaluator
 
   @doc """
   Evaluates the current round and updates the state with a vault or alarm.
-  This is used in the final phase of each round.
+
+  This function:
+  1. Identifies players with red rank chips
+  2. Evaluates each player's poker hand
+  3. Checks if hands are ordered correctly according to rank chip values
+  4. Awards vault (success) or alarm (failure) based on evaluation
+  5. Determines if the game is complete (3 vaults or 3 alarms reached)
+
+  Returns updated state with:
+  - Incremented vault or alarm count
+  - Evaluated hands stored for UI display
+  - Game status set to :completed if game is over
   """
   def evaluate_round(state) do
     # Get the players and their ranks from the rank chips
@@ -36,36 +53,14 @@ defmodule Gang.Game.Evaluator do
 
     # Check if the ordering is correct (weakest to strongest)
     is_correct_order = evaluate_order(ordered_players, player_hands)
+    round_result = if is_correct_order, do: :vault, else: :alarm
 
-    # Update the state with a vault or alarm and store evaluated hands
-    updated_state =
-      if is_correct_order do
-        %State{
-          state
-          | vaults: state.vaults + 1,
-            evaluated_hands: player_hands,
-            current_phase: :evaluation
-        }
-      else
-        %State{
-          state
-          | alarms: state.alarms + 1,
-            evaluated_hands: player_hands,
-            current_phase: :evaluation
-        }
-      end
-
-    # Check if the game is over
-    if game_over?(updated_state) do
-      # Game is over
-      %State{updated_state | status: :completed}
-    else
-      # Continue to the next round
-      updated_state
-    end
+    %{
+      round_result: round_result,
+      player_hands: player_hands
+    }
   end
 
-  # Checks if player hands are correctly ordered based on their rank chips.
   # Player with rank 1 should have the weakest hand, and so on.
   defp evaluate_order(ordered_player_ids, player_hands) do
     # If we have fewer than 2 players, the order is trivially correct
@@ -80,7 +75,8 @@ defmodule Gang.Game.Evaluator do
         hand2 = Map.get(player_hands, player2_id)
 
         # The first player should have a weaker hand than the second
-        HandEvaluator.compare_hands(hand1, hand2) == :lt
+        # or they should have the same hand (still considered valid win)
+        HandEvaluator.compare_hands(hand1, hand2) in [:lt, :eq]
       end)
     end
   end

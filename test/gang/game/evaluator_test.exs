@@ -4,11 +4,10 @@ defmodule Gang.Game.EvaluatorTest do
   alias Gang.Game.{Card, Evaluator, Player, RankChip, State}
 
   describe "evaluate_round/1" do
-    test "adds a vault when player hands match rank chip order" do
+    test "returns :vault when player hands match rank chip order" do
       # Create a game state in round_end
       state = %State{
-        round: 5,
-        current_phase: :evaluation,
+        current_round: :river,
         vaults: 0,
         alarms: 0,
         players: [
@@ -47,15 +46,15 @@ defmodule Gang.Game.EvaluatorTest do
 
       result = Evaluator.evaluate_round(state)
 
-      assert result.vaults == 1
-      assert result.alarms == 0
+      assert result.round_result == :vault
+      assert is_map(result.player_hands)
+      assert map_size(result.player_hands) == 2
     end
 
-    test "adds an alarm when player hands do not match rank chip order" do
+    test "returns :alarm when player hands do not match rank chip order" do
       # Create a game state in round_end
       state = %State{
-        round: 5,
-        current_phase: :evaluation,
+        current_round: :river,
         vaults: 0,
         alarms: 0,
         players: [
@@ -95,15 +94,15 @@ defmodule Gang.Game.EvaluatorTest do
 
       result = Evaluator.evaluate_round(state)
 
-      assert result.vaults == 0
-      assert result.alarms == 1
+      assert result.round_result == :alarm
+      assert is_map(result.player_hands)
+      assert map_size(result.player_hands) == 2
     end
 
     test "correctly evaluates different hand strengths" do
       # Create a game state in round_end with three players
       state = %State{
-        round: 5,
-        current_phase: :evaluation,
+        current_round: :river,
         vaults: 0,
         alarms: 0,
         players: [
@@ -153,15 +152,27 @@ defmodule Gang.Game.EvaluatorTest do
 
       result = Evaluator.evaluate_round(state)
 
-      assert result.vaults == 0
-      assert result.alarms == 1
+      assert result.round_result == :alarm
+      assert is_map(result.player_hands)
+      assert map_size(result.player_hands) == 3
+
+      # Verify each player's hand is properly evaluated
+      player1_hand = result.player_hands["player1"]
+      player2_hand = result.player_hands["player2"]
+      player3_hand = result.player_hands["player3"]
+
+      # Player 1 has a straight flush
+      assert elem(player1_hand, 0) == :straight_flush
+      # Player 2 has a straight
+      assert elem(player2_hand, 0) == :straight
+      # Player 3 has a pair
+      assert elem(player3_hand, 0) == :pair
     end
 
     test "correctly handles tie situations based on rank chips" do
       # Create a game state in round_end with two players with identical hand strength
       state = %State{
-        round: 5,
-        current_phase: :evaluation,
+        current_round: :river,
         vaults: 0,
         alarms: 0,
         players: [
@@ -201,16 +212,23 @@ defmodule Gang.Game.EvaluatorTest do
 
       result = Evaluator.evaluate_round(state)
 
-      assert result.vaults == 0
-      assert result.alarms == 1
+      assert result.round_result == :vault
+      assert is_map(result.player_hands)
+      assert map_size(result.player_hands) == 2
+
+      # Verify both players have the same hand type
+      player1_hand = result.player_hands["player1"]
+      player2_hand = result.player_hands["player2"]
+
+      assert elem(player1_hand, 0) == :pair
+      assert elem(player2_hand, 0) == :pair
     end
 
-    test "ends the game when 3 vaults are reached" do
+    test "returns correct result with 2 vaults already" do
       # Create a game state in round_end with 2 vaults already
       state = %State{
-        round: 5,
+        current_round: :river,
         status: :playing,
-        current_phase: :evaluation,
         vaults: 2,
         alarms: 0,
         players: [
@@ -246,16 +264,16 @@ defmodule Gang.Game.EvaluatorTest do
 
       result = Evaluator.evaluate_round(state)
 
-      assert result.vaults == 3
-      assert result.status == :completed
+      assert result.round_result == :vault
+      assert is_map(result.player_hands)
+      assert map_size(result.player_hands) == 2
     end
 
-    test "ends the game when 3 alarms are reached" do
+    test "returns correct result with 2 alarms already" do
       # Create a game state in round_end with 2 alarms already
       state = %State{
-        round: 5,
+        current_round: :river,
         status: :playing,
-        current_phase: :evaluation,
         vaults: 0,
         alarms: 2,
         players: [
@@ -291,8 +309,9 @@ defmodule Gang.Game.EvaluatorTest do
 
       result = Evaluator.evaluate_round(state)
 
-      assert result.alarms == 3
-      assert result.status == :completed
+      assert result.round_result == :alarm
+      assert is_map(result.player_hands)
+      assert map_size(result.player_hands) == 2
     end
   end
 

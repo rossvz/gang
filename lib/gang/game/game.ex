@@ -1,12 +1,19 @@
 defmodule Gang.Game do
   @moduledoc """
   Represents an active game session. This is the GenServer that manages the game state.
+
+  Primarily acts as the orchestration layer
+
+  Generally the responsibility of updating the state is pushed to `Gang.Game.State` module
+  The Game generally handles the GenServer API management
+  as well as broadcasting updates to via PubSub
   """
 
   use GenServer, restart: :temporary
 
   alias Gang.PubSub
-  alias Gang.Game.{Evaluator, Player, State, Deck}
+  alias Gang.Game.Player
+  alias Gang.Game.State
 
   # How long to wait for a player to reconnect after they leave the game
   @permanently_remove_player_timeout 30_000
@@ -88,6 +95,15 @@ defmodule Gang.Game do
     GenServer.call(game_pid, {:return_rank_chip, player_id, rank, color})
   end
 
+  @doc """
+  Advances to the next poker round or evaluates the hand.
+
+  This function manages game flow progression:
+  - Moves from one poker round to the next (preflop → flop → turn → river)
+  - Transitions from river to evaluation
+  - Evaluates hands during evaluation
+  - Starts a new hand after evaluation
+  """
   def advance_round(code) when is_binary(code) do
     GenServer.call(via_tuple(code), :advance_round)
   end
@@ -184,21 +200,7 @@ defmodule Gang.Game do
 
   @impl true
   def handle_call(:advance_round, _from, state) do
-    updated_state =
-      cond do
-        # If we're in round 4 and not in evaluation phase yet, evaluate hands
-        state.round == 4 && state.current_phase != :evaluation ->
-          Evaluator.evaluate_round(state)
-
-        # If we're in evaluation phase, advance to next round
-        state.current_phase == :evaluation ->
-          State.advance_round(state)
-
-        # Otherwise just advance normally
-        true ->
-          State.advance_round(state)
-      end
-
+    updated_state = State.advance_round(state)
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
   end
@@ -208,21 +210,6 @@ defmodule Gang.Game do
     updated_state = State.remove_player(state, player_id)
     broadcast_update(updated_state)
     {:noreply, updated_state}
-  end
-
-  # Helper function to deal cards to players (moved from State module)
-  defp deal_player_cards(players, deck) do
-    Enum.map_reduce(players, deck, fn player, current_deck ->
-      # Clear ALL rank chips when starting a new hand, not just the red ones
-      # This resets chips after a vault or alarm is triggered
-      updated_rank_chips = []
-
-      # Deal new cards
-      {cards, remaining_deck} = Deck.deal(current_deck, 2)
-
-      # Return player with new cards and no rank chips
-      {%{player | cards: cards, rank_chips: updated_rank_chips}, remaining_deck}
-    end)
   end
 
   defp broadcast_update(state) do

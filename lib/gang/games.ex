@@ -19,6 +19,11 @@ defmodule Gang.Games do
   """
   def list_games do
     GameSupervisor.list_games()
+    |> Enum.map(fn {game_id, _pid} ->
+      {:ok, game} = get_game(game_id)
+      game
+    end)
+    |> Enum.sort_by(& &1.last_active, {:desc, DateTime})
   end
 
   @doc """
@@ -211,13 +216,6 @@ defmodule Gang.Games do
     else
       {:error, :game_not_found}
     end
-  end
-
-  @doc """
-  Alias for advance_round.
-  """
-  def continue_game(code) do
-    advance_round(code)
   end
 
   # Broadcasts an update of the game state.

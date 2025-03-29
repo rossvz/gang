@@ -110,19 +110,19 @@
               </td>
             </tr>
           <% else %>
-            <%= for %{status: status, count: count, game_id: game_id} <- @games do %>
+            <%= for %{status: status, players: players, code: game_id} <- @games do %>
               <tr class="hover:bg-ctp-surface0/30 transition-colors duration-300">
                 <td class="px-6 py-4 whitespace-nowrap text-ctp-text font-medium">{game_id}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-ctp-subtext0">
                   <div class="flex items-center gap-2">
-                    <span :if={count > 0} class="flex -space-x-2">
-                      <%= for _ <- 1..count do %>
+                    <span :if={length(players) > 0} class="flex -space-x-2">
+                      <%= for _ <- 1..length(players) do %>
                         <span class="w-6 h-6 rounded-full bg-ctp-overlay0/30 border-2 border-ctp-surface0 flex items-center justify-center text-xs">
                           👤
                         </span>
                       <% end %>
                     </span>
-                    <span>{count} / 6</span>
+                    <span>{length(players)} / 6</span>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
