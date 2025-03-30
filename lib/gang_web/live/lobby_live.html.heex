@@ -87,103 +87,107 @@
     <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
       <span class="text-ctp-peach">🎲</span> Active Games
     </h2>
-    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 transform hover:shadow-2xl transition-all duration-300">
-      <table class="min-w-full">
-        <thead class="bg-ctp-surface0/50">
-          <tr>
-            <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-              Game ID
-            </th>
-            <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-              Players
-            </th>
-            <th class="px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-              Status
-            </th>
-            <th class=" px-6 py-4 text-right text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-ctp-surface0/50">
-          <%= if Enum.empty?(@games) do %>
+    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 transform hover:shadow-2xl transition-all duration-300 overflow-x-auto">
+      <div class="min-w-full">
+        <table class="w-full table-auto">
+          <thead class="bg-ctp-surface0/50">
             <tr>
-              <td colspan="4" class="px-6 py-8 text-center text-ctp-subtext0">
-                <p class="text-lg mb-2">No active games yet!</p>
-                <p class="text-sm text-ctp-overlay0">Create one to start the fun 🎮</p>
-              </td>
+              <th class="px-2 md:px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+                Game ID
+              </th>
+              <th class="px-2 md:px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+                Players
+              </th>
+              <th class="px-2 md:px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+                Status
+              </th>
+              <th class="px-2 md:px-6 py-4 text-right text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              </th>
             </tr>
-          <% else %>
-            <%= for %{status: status, players: players, code: game_id} <- @games do %>
-              <tr class="hover:bg-ctp-surface0/30 transition-colors duration-300">
-                <td class="px-6 py-4 whitespace-nowrap text-ctp-text font-medium">{game_id}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-ctp-subtext0">
-                  <div class="flex items-center gap-2">
-                    <span :if={length(players) > 0} class="flex -space-x-2">
-                      <%= for _ <- 1..length(players) do %>
-                        <span class="w-6 h-6 rounded-full bg-ctp-overlay0/30 border-2 border-ctp-surface0 flex items-center justify-center text-xs">
-                          👤
-                        </span>
-                      <% end %>
-                    </span>
-                    <span>{length(players)} / 6</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <%= case status do %>
-                    <% :waiting -> %>
-                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-yellow/20 text-ctp-yellow animate-pulse">
-                        ⌛ Waiting
-                      </span>
-                    <% :playing -> %>
-                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-green/20 text-ctp-green">
-                        🎮 In Progress
-                      </span>
-                    <% :completed -> %>
-                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-blue/20 text-ctp-blue">
-                        🏆 Completed
-                      </span>
-                    <% _ -> %>
-                      <span class="px-3 py-1 inline-flex items-center gap-1 text-sm font-semibold rounded-full bg-ctp-overlay0/20 text-ctp-overlay0">
-                        ❓ Unknown
-                      </span>
-                  <% end %>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <%= if @player.name != "" do %>
-                    <% is_player_in_game = Enum.any?(players, &(&1.id == @player.id)) %>
-                    <.link
-                      :if={status == :waiting}
-                      navigate={
-                        ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
-                      }
-                      class="w-24 inline-flex justify-center items-center gap-1 px-4 py-2 rounded-lg bg-ctp-green/10 text-ctp-green hover:bg-ctp-green/20 transition-colors duration-300"
-                    >
-                      Join <span class="text-lg">▶</span>
-                    </.link>
-                    <.link
-                      :if={status == :playing && is_player_in_game}
-                      navigate={
-                        ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
-                      }
-                      class="w-24 inline-flex justify-center items-center gap-1 px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300"
-                    >
-                      Rejoin <span class="text-lg">🔄</span>
-                    </.link>
-                    <span
-                      :if={status == :playing && !is_player_in_game}
-                      class="text-ctp-overlay0 text-xs"
-                    >
-                      In Progress
-                    </span>
-                  <% else %>
-                    <span class="text-ctp-overlay0 text-xs">Enter Name</span>
-                  <% end %>
+          </thead>
+          <tbody class="divide-y divide-ctp-surface0/50">
+            <%= if Enum.empty?(@games) do %>
+              <tr>
+                <td colspan="4" class="px-2 md:px-6 py-8 text-center text-ctp-subtext0">
+                  <p class="text-lg mb-2">No active games yet!</p>
+                  <p class="text-sm text-ctp-overlay0">Create one to start the fun 🎮</p>
                 </td>
               </tr>
+            <% else %>
+              <%= for %{status: status, players: players, code: game_id} <- @games do %>
+                <tr class="hover:bg-ctp-surface0/30 transition-colors duration-300">
+                  <td class="px-2 md:px-6 py-4 whitespace-nowrap text-ctp-text font-medium">
+                    {game_id}
+                  </td>
+                  <td class="px-2 md:px-6 py-4 whitespace-nowrap text-ctp-subtext0">
+                    <div class="flex items-center gap-1 md:gap-2">
+                      <span :if={length(players) > 0} class="flex -space-x-1 md:-space-x-2">
+                        <%= for _ <- 1..length(players) do %>
+                          <span class="w-4 md:w-6 h-4 md:h-6 rounded-full bg-ctp-overlay0/30 border-2 border-ctp-surface0 flex items-center justify-center text-[10px] md:text-xs">
+                            👤
+                          </span>
+                        <% end %>
+                      </span>
+                      <span class="text-xs md:text-sm">{length(players)} / 6</span>
+                    </div>
+                  </td>
+                  <td class="px-2 md:px-6 py-4 whitespace-nowrap">
+                    <%= case status do %>
+                      <% :waiting -> %>
+                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-yellow/20 text-ctp-yellow animate-pulse">
+                          ⌛ Waiting
+                        </span>
+                      <% :playing -> %>
+                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-green/20 text-ctp-green">
+                          🎮 In Progress
+                        </span>
+                      <% :completed -> %>
+                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-blue/20 text-ctp-blue">
+                          🏆 Completed
+                        </span>
+                      <% _ -> %>
+                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-overlay0/20 text-ctp-overlay0">
+                          ❓ Unknown
+                        </span>
+                    <% end %>
+                  </td>
+                  <td class="px-2 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <%= if @player.name != "" do %>
+                      <% is_player_in_game = Enum.any?(players, &(&1.id == @player.id)) %>
+                      <.link
+                        :if={is_player_in_game}
+                        navigate={
+                          ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
+                        }
+                        class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300 text-xs md:text-sm"
+                      >
+                        Rejoin <span class="text-base md:text-lg">🔄</span>
+                      </.link>
+                      <.link
+                        :if={status == :waiting && !is_player_in_game}
+                        navigate={
+                          ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
+                        }
+                        class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-green/10 text-ctp-green hover:bg-ctp-green/20 transition-colors duration-300 text-xs md:text-sm"
+                      >
+                        Join <span class="text-base md:text-lg">▶</span>
+                      </.link>
+                      <span
+                        :if={status == :playing && !is_player_in_game}
+                        class="text-ctp-overlay0 text-xs"
+                      >
+                        In Progress
+                      </span>
+                    <% else %>
+                      <span class="text-ctp-overlay0 text-xs">Enter Name</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
             <% end %>
-          <% end %>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

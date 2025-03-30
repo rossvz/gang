@@ -28,21 +28,18 @@ const Hooks = {
       // Check if we already have a player name and ID in localStorage
       const savedName = localStorage.getItem("player_name");
       const savedId = localStorage.getItem("player_id");
-      if (savedName) {
+      if (savedName && savedId) {
         this.el.value = savedName;
         // Push the saved name and ID to the server
-        this.pushEvent("set_player_name", {
+        this.pushEvent("restore_player_info", {
           player_name: savedName,
           player_id: savedId,
         });
       }
 
-      // Listen for the custom event when server saves the name
-      this.handleEvent("set_player_name", ({ player_name, player_id }) => {
+      this.handleEvent("save_player_info", ({ player_name, player_id }) => {
         localStorage.setItem("player_name", player_name);
-        if (player_id) {
-          localStorage.setItem("player_id", player_id);
-        }
+        localStorage.setItem("player_id", player_id);
       });
     },
   },

@@ -12,13 +12,12 @@ defmodule GangWeb.LobbyLive do
     end
 
     player_name = Map.get(params, "player_name", "")
-    player_id = Map.get(params, "player_id", Ecto.UUID.generate())
+    player_id = Map.get(params, "player_id")
 
     player = Player.new(player_name, player_id)
 
     socket =
-      socket
-      |> assign(
+      assign(socket,
         games: list_games(),
         game_code: "",
         player_name: player_name,
@@ -27,7 +26,6 @@ defmodule GangWeb.LobbyLive do
         error_message: "",
         player: player
       )
-      |> push_event("set_player_name", %{player_name: player_name, player_id: player_id})
 
     {:ok, socket}
   end
@@ -72,9 +70,9 @@ defmodule GangWeb.LobbyLive do
   end
 
   @impl true
-  def handle_event("set_player_name", %{"player_name" => player_name, "player_id" => player_id_from_client}, socket) do
+  def handle_event("set_player_name", %{"player_name" => player_name}, socket) do
     final_player_id =
-      case player_id_from_client do
+      case socket.assigns.player.id do
         nil -> Ecto.UUID.generate()
         "" -> Ecto.UUID.generate()
         id -> id
@@ -85,7 +83,13 @@ defmodule GangWeb.LobbyLive do
     {:noreply,
      socket
      |> assign(player: updated_player)
-     |> push_event("set_player_name", %{player_name: player_name, player_id: final_player_id})}
+     |> push_event("save_player_info", %{player_name: player_name, player_id: final_player_id})}
+  end
+
+  def handle_event("restore_player_info", %{"player_name" => player_name, "player_id" => player_id}, socket) do
+    updated_player = Player.new(player_name, player_id)
+
+    {:noreply, assign(socket, player: updated_player)}
   end
 
   @impl true
@@ -94,14 +98,15 @@ defmodule GangWeb.LobbyLive do
   end
 
   @impl true
-  def handle_info({:game_closed, _game_code}, socket) do
-    {:noreply, assign(socket, games: Games.list_games())}
-  end
-
-  @impl true
   def handle_info({:game_updated, _game}, socket) do
     games = list_games()
     {:noreply, assign(socket, games: games)}
+  end
+
+  @impl true
+  def handle_info({:game_removed, game_id}, socket) do
+    updated_games = Enum.reject(socket.assigns.games, &(&1.code == game_id))
+    {:noreply, assign(socket, games: updated_games)}
   end
 
   defp list_games do
