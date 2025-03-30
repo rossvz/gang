@@ -2,19 +2,19 @@ defmodule GangWeb.LobbyLive do
   @moduledoc false
   use GangWeb, :live_view
 
+  alias Gang.Game.Player
   alias Gang.Games
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Gang.PubSub, "games")
     end
 
-    player_name = Map.get(socket.assigns, :player_name, "")
-    player_id = Map.get(socket.assigns, :player_id)
+    player_name = Map.get(params, "player_name", "")
+    player_id = Map.get(params, "player_id", Ecto.UUID.generate())
 
-    # If player has a name but no ID, generate one
-    player_id = if player_id, do: player_id, else: Ecto.UUID.generate()
+    player = Player.new(player_name, player_id)
 
     socket =
       socket
@@ -24,7 +24,8 @@ defmodule GangWeb.LobbyLive do
         player_name: player_name,
         player_id: player_id,
         show_error: false,
-        error_message: ""
+        error_message: "",
+        player: player
       )
       |> push_event("set_player_name", %{player_name: player_name, player_id: player_id})
 
@@ -33,50 +34,33 @@ defmodule GangWeb.LobbyLive do
 
   @impl true
   def handle_event("join_game", %{"game_code" => game_code}, socket) do
-    player_name = socket.assigns.player_name
-    player_id = socket.assigns.player_id
+    player = socket.assigns.player
+    {:ok, _pid} = Games.join_game(game_code, player)
 
-    if !player_id || !player_name do
-      {:noreply,
-       socket
-       |> put_flash(:error, "Please set your name first")
-       |> assign(show_error: true, error_message: "Please set your name first")}
-    else
-      {:ok, _pid} = Games.join_game(game_code, player_name, player_id)
-
-      {:noreply,
-       push_navigate(socket,
-         to: ~p"/games/#{game_code}?player_name=#{player_name}&player_id=#{player_id}"
-       )}
-    end
+    {:noreply,
+     push_navigate(socket,
+       to: ~p"/games/#{game_code}?player_name=#{player.name}&player_id=#{player.id}"
+     )}
   end
 
   @impl true
   def handle_event("create_game", _params, socket) do
-    player_name = socket.assigns.player_name
-    player_id = socket.assigns.player_id
+    player = socket.assigns.player
 
-    if !player_id || !player_name do
-      {:noreply,
-       socket
-       |> put_flash(:error, "Please set your name first")
-       |> assign(show_error: true, error_message: "Please set your name first")}
-    else
-      case Games.create_game() do
-        {:ok, game_code} ->
-          Games.broadcast_game_created(game_code)
+    case Games.create_game() do
+      {:ok, game_code} ->
+        Games.broadcast_game_created(game_code)
 
-          {:noreply,
-           push_navigate(socket,
-             to: ~p"/games/#{game_code}?player_name=#{player_name}&player_id=#{player_id}"
-           )}
+        {:noreply,
+         push_navigate(socket,
+           to: ~p"/games/#{game_code}?player_name=#{player.name}&player_id=#{player.id}"
+         )}
 
-        {:error, reason} ->
-          {:noreply,
-           socket
-           |> put_flash(:error, "Error creating game: #{reason}")
-           |> assign(show_error: true, error_message: "Error creating game: #{reason}")}
-      end
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Error creating game: #{reason}")
+         |> assign(show_error: true, error_message: "Error creating game: #{reason}")}
     end
   end
 
@@ -88,15 +72,20 @@ defmodule GangWeb.LobbyLive do
   end
 
   @impl true
-  def handle_event("set_player_name", %{"player_name" => player_name}, socket) do
-    # Generate a new player ID if one doesn't exist
-    player_id = socket.assigns.player_id || Ecto.UUID.generate()
+  def handle_event("set_player_name", %{"player_name" => player_name, "player_id" => player_id_from_client}, socket) do
+    final_player_id =
+      case player_id_from_client do
+        nil -> Ecto.UUID.generate()
+        "" -> Ecto.UUID.generate()
+        id -> id
+      end
+
+    updated_player = Player.new(player_name, final_player_id)
 
     {:noreply,
      socket
-     |> assign(player_name: player_name)
-     |> assign(player_id: player_id)
-     |> push_event("set_player_name", %{player_name: player_name, player_id: player_id})}
+     |> assign(player: updated_player)
+     |> push_event("set_player_name", %{player_name: player_name, player_id: final_player_id})}
   end
 
   @impl true

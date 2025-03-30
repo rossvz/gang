@@ -3,6 +3,7 @@ defmodule GangWeb.GameLive do
   use GangWeb, :live_view
 
   alias Gang.Game.Card
+  alias Gang.Game.Player
   alias Gang.Games
   alias GangWeb.CardComponents
 
@@ -16,45 +17,35 @@ defmodule GangWeb.GameLive do
 
   @impl true
   def mount(%{"id" => game_id} = params, _session, socket) do
-    # Get player info from either URL params or socket assigns
     player_name = params["player_name"] || socket.assigns.player_name
     player_id = params["player_id"] || socket.assigns.player_id
 
-    # Redirect to lobby if no player ID
-    if player_id do
-      if connected?(socket) do
-        Games.subscribe(game_id)
-        if player_name, do: {:ok, _} = Games.join_game(game_id, player_name, player_id)
-      end
+    player = Player.new(player_name, player_id)
 
-      case Games.get_game(game_id) do
-        {:ok, game} ->
-          player = if player_id, do: Enum.find(game.players, &(&1.id == player_id))
+    if connected?(socket) do
+      Games.subscribe(game_id)
+      Games.join_game(game_id, player)
+    end
 
-          # Get unique players and split into current and others
-          player_split = split_players(game.players, player_id)
+    case Games.get_game(game_id) do
+      {:ok, game} ->
+        player_split = split_players(game.players, player_id)
 
-          socket =
-            socket
-            |> assign(game_id: game_id)
-            |> assign(player_name: player_name)
-            |> assign(player_id: player_id)
-            |> assign(game: game)
-            |> assign(player: player)
-            |> assign(selected_rank_chip: nil)
-            |> assign(player_split: player_split)
-            |> assign(show_hand_guide: false)
+        socket =
+          socket
+          |> assign(game_id: game_id)
+          |> assign(player_name: player_name)
+          |> assign(player_id: player_id)
+          |> assign(game: game)
+          |> assign(player: player)
+          |> assign(selected_rank_chip: nil)
+          |> assign(player_split: player_split)
+          |> assign(show_hand_guide: false)
 
-          {:ok, socket}
+        {:ok, socket}
 
-        {:error, _} ->
-          {:ok, push_navigate(socket, to: ~p"/")}
-      end
-    else
-      {:ok,
-       socket
-       |> put_flash(:error, "Please set your name in the lobby first")
-       |> push_navigate(to: ~p"/")}
+      {:error, _} ->
+        {:ok, push_navigate(socket, to: ~p"/")}
     end
   end
 
@@ -94,11 +85,7 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
-  def handle_event(
-        "claim_from_player",
-        %{"rank" => rank, "color" => color, "player" => from_player},
-        socket
-      ) do
+  def handle_event("claim_from_player", %{"rank" => rank, "color" => color, "player" => from_player}, socket) do
     {rank, _} = Integer.parse(rank)
     color = String.to_existing_atom(color)
 
@@ -574,7 +561,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-
+      
     <!-- Game Table Section -->
       <div class="bg-ctp-mantle rounded-lg p-4">
         <div class="flex flex-col items-center">
@@ -594,7 +581,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-
+      
     <!-- Current Player Section -->
       <%= if @player_split.current_player do %>
         <div class={[

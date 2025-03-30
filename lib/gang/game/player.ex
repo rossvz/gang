@@ -27,9 +27,9 @@ defmodule Gang.Game.Player do
   @doc """
   Creates a new player with the given name.
   """
-  def new(name) when is_binary(name) do
+  def new(name, id \\ Ecto.UUID.generate()) do
     %__MODULE__{
-      id: Ecto.UUID.generate(),
+      id: id,
       name: name,
       last_activity: DateTime.utc_now()
     }

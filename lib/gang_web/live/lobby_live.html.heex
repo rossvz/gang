@@ -9,7 +9,7 @@
 <!-- Player Name Input with Enhanced Styling -->
   <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 mb-4 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
     <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-      <span class="text-ctp-mauve">👤</span> Your Player Name: {@player_name}
+      <span class="text-ctp-mauve">👤</span> Your Player Name: {@player.name}
     </h2>
     <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
       <div class="flex items-center gap-4 justify-center">
@@ -18,7 +18,7 @@
             type="text"
             name="player_name"
             placeholder="Enter Your Name"
-            value={@player_name}
+            value={@player.name}
             id="player-name-input"
             phx-hook="SetPlayerName"
             required
@@ -37,7 +37,7 @@
     </.form>
   </div>
 
-  <div :if={@player_name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div :if={@player.name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <!-- Create Game Card -->
     <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
       <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
@@ -46,7 +46,7 @@
       <.form for={%{}} phx-submit="create_game">
         <.button
           class="w-full bg-ctp-green hover:bg-ctp-teal transition-colors duration-300 transform hover:scale-105"
-          disabled={@player_name == ""}
+          disabled={@player.name == ""}
         >
           Create Game
         </.button>
@@ -55,7 +55,7 @@
     
 <!-- Join Game Card -->
     <div
-      :if={@player_name != ""}
+      :if={@player.name != ""}
       class="bg-ctp-mantle/80 bg-opacity-10 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
     >
       <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
@@ -74,7 +74,7 @@
         </div>
         <.button
           class="w-full bg-ctp-blue hover:bg-ctp-sapphire transition-colors duration-300 transform hover:scale-105"
-          disabled={@player_name == ""}
+          disabled={@player.name == ""}
         >
           Join Game
         </.button>
@@ -83,7 +83,7 @@
   </div>
   
 <!-- Active Games List with Enhanced Styling -->
-  <div :if={@player_name != ""} class="mt-6">
+  <div :if={@player.name != ""} class="mt-6">
     <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
       <span class="text-ctp-peach">🎲</span> Active Games
     </h2>
@@ -149,20 +149,34 @@
                   <% end %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <%= if @player_name != "" do %>
+                  <%= if @player.name != "" do %>
+                    <% is_player_in_game = Enum.any?(players, &(&1.id == @player.id)) %>
                     <.link
+                      :if={status == :waiting}
                       navigate={
-                        ~p"/games/#{game_id}?player_name=#{@player_name}&player_id=#{@player_id}"
+                        ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
+                      }
+                      class="w-24 inline-flex justify-center items-center gap-1 px-4 py-2 rounded-lg bg-ctp-green/10 text-ctp-green hover:bg-ctp-green/20 transition-colors duration-300"
+                    >
+                      Join <span class="text-lg">▶</span>
+                    </.link>
+                    <.link
+                      :if={status == :playing && is_player_in_game}
+                      navigate={
+                        ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
                       }
                       class="w-24 inline-flex justify-center items-center gap-1 px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300"
                     >
-                      {if status == :waiting, do: "Join", else: "Watch"}
-                      <span class="text-lg">
-                        {if status == :waiting, do: "▶", else: "👀"}
-                      </span>
+                      Rejoin <span class="text-lg">🔄</span>
                     </.link>
+                    <span
+                      :if={status == :playing && !is_player_in_game}
+                      class="text-ctp-overlay0 text-xs"
+                    >
+                      In Progress
+                    </span>
                   <% else %>
-                    <span class="text-ctp-overlay0">Enter Name</span>
+                    <span class="text-ctp-overlay0 text-xs">Enter Name</span>
                   <% end %>
                 </td>
               </tr>

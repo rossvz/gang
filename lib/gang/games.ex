@@ -65,26 +65,17 @@ defmodule Gang.Games do
   Returns {:ok, game_pid} on success.
   Returns {:error, reason} if the game doesn't exist.
   """
-  def join_game(code, player_name, player_id \\ nil) when is_binary(player_name) do
+  def join_game(code, player) do
     if GameSupervisor.game_exists?(code) do
-      # Check if player already exists by ID first, then by name if no ID
       with {:ok, state} <- get_game(code) do
-        existing_player =
-          if player_id do
-            Enum.find(state.players, &(&1.id == player_id))
-          else
-            Enum.find(state.players, &(&1.name == player_name))
-          end
+        existing_player = Enum.find(state.players, &(&1.id == player.id))
 
         if existing_player do
           # Update connection status
           Game.update_connection(code, existing_player.id, true)
           {:ok, existing_player}
         else
-          # Add new player
-          Game.add_player(code, player_name, player_id)
-
-          # Broadcast game update
+          Game.add_player(code, player)
           broadcast_update(code)
 
           {:ok, GameSupervisor.get_game_pid(code)}

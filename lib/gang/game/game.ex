@@ -16,7 +16,7 @@ defmodule Gang.Game do
   alias Gang.PubSub
 
   # How long to wait for a player to reconnect after they leave the game
-  @permanently_remove_player_timeout 30_000
+  @permanently_remove_player_timeout 90_000
 
   # Client API
 
@@ -27,8 +27,8 @@ defmodule Gang.Game do
   @doc """
   Adds a player to the game.
   """
-  def add_player(code, player_name, player_id \\ nil) when is_binary(code) and is_binary(player_name) do
-    GenServer.call(via_tuple(code), {:join, player_name, player_id})
+  def add_player(code, %Player{} = player) when is_binary(code) do
+    GenServer.call(via_tuple(code), {:join, player})
   end
 
   @doc """
@@ -45,8 +45,8 @@ defmodule Gang.Game do
     GenServer.call(via_tuple(code), {:update_connection, player_id, connected})
   end
 
-  def join(game_pid, player_name, player_id \\ nil) do
-    GenServer.call(game_pid, {:join, player_name, player_id})
+  def join(game_pid, %Player{} = player) do
+    GenServer.call(game_pid, {:join, player})
   end
 
   def leave(game_pid, player_id) do
@@ -116,13 +116,13 @@ defmodule Gang.Game do
   end
 
   @impl true
-  def handle_call({:join, player_name, player_id}, _from, state) do
+  def handle_call({:join, %Player{} = player}, _from, state) do
     # Check if player is already in the game by ID first, then by name if no ID
     existing_player =
-      if player_id do
-        Enum.find(state.players, &(&1.id == player_id))
+      if player.id do
+        Enum.find(state.players, &(&1.id == player.id))
       else
-        Enum.find(state.players, &(&1.name == player_name))
+        Enum.find(state.players, &(&1.name == player.name))
       end
 
     if existing_player do
@@ -132,11 +132,6 @@ defmodule Gang.Game do
       {:reply, {:ok, updated_state}, updated_state}
     else
       # Add new player
-      player =
-        if player_id,
-          do: %{Player.new(player_name) | id: player_id},
-          else: Player.new(player_name)
-
       updated_state = State.add_player(state, player)
       broadcast_update(updated_state)
       {:reply, {:ok, updated_state}, updated_state}
