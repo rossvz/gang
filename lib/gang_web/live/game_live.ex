@@ -4,6 +4,7 @@ defmodule GangWeb.GameLive do
 
   alias Gang.Game.Card
   alias Gang.Games
+  alias GangWeb.CardComponents
 
   on_mount {GangWeb.ParamHandlers, :extract_query_params}
 
@@ -93,7 +94,11 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
-  def handle_event("claim_from_player", %{"rank" => rank, "color" => color, "player" => from_player}, socket) do
+  def handle_event(
+        "claim_from_player",
+        %{"rank" => rank, "color" => color, "player" => from_player},
+        socket
+      ) do
     {rank, _} = Integer.parse(rank)
     color = String.to_existing_atom(color)
 
@@ -198,40 +203,6 @@ defmodule GangWeb.GameLive do
   defp color_classes(:orange), do: "bg-ctp-peach text-ctp-base border-ctp-red"
   defp color_classes(:red), do: "bg-ctp-red text-ctp-base border-ctp-maroon"
 
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <div class="max-w-7xl mx-auto px-4 py-8 text-ctp-text min-h-screen">
-      <.game_header game_id={@game_id} player={@player} show_hand_guide={@show_hand_guide} />
-      <.game_status game={@game} player={@player} />
-
-      <%= if @game.status == :playing do %>
-        <div class={[
-          "relative mb-8",
-          "md:min-h-[700px] lg:min-h-[800px]"
-        ]}>
-          <.mobile_layout
-            player_split={@player_split}
-            game={@game}
-            player={@player}
-            player_name={@player_name}
-            selected_rank_chip={@selected_rank_chip}
-          />
-
-          <.desktop_layout
-            game={@game}
-            player={@player}
-            player_name={@player_name}
-            selected_rank_chip={@selected_rank_chip}
-          />
-        </div>
-      <% else %>
-        <.waiting_room game={@game} />
-      <% end %>
-    </div>
-    """
-  end
-
   def waiting_room(assigns) do
     ~H"""
     <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-lg shadow-lg shadow-ctp-crust/10 p-6 text-center">
@@ -294,7 +265,7 @@ defmodule GangWeb.GameLive do
       </div>
     <% end %>
 
-    <.hand_ranking_guide :if={@show_hand_guide} />
+    <CardComponents.hand_ranking_guide :if={@show_hand_guide} />
     """
   end
 
@@ -443,7 +414,7 @@ defmodule GangWeb.GameLive do
         <div class="flex flex-col gap-2">
           <div class="flex justify-center gap-0.5">
             <%= for card <- @player.cards do %>
-              <.card card={card} size={@card_size} />
+              <CardComponents.card card={card} size={@card_size} />
             <% end %>
           </div>
           <%= if @game.current_round == :evaluation && @game.evaluated_hands do %>
@@ -504,12 +475,7 @@ defmodule GangWeb.GameLive do
                 "rounded-full flex items-center justify-center font-bold border transition-colors cursor-pointer",
                 @size == "small" && "w-5 h-5 text-xs",
                 @size == "normal" && "w-8 h-8 text-base border-2",
-                case color do
-                  :white -> "bg-ctp-text border-ctp-overlay0 text-ctp-base"
-                  :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
-                  :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
-                  :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
-                end
+                color_classes(color)
               ]}
               phx-click="claim_chip"
               phx-value-rank={player_chip.rank}
@@ -535,7 +501,7 @@ defmodule GangWeb.GameLive do
     ~H"""
     <div class="flex flex-shrink-0 justify-center gap-1 mb-4">
       <%= for {card, idx} <- Enum.with_index(@cards) do %>
-        <.card
+        <CardComponents.card
           card={card || %Card{rank: idx + 1, suit: :spades}}
           revealed={!is_nil(card)}
           size={@size}
@@ -575,12 +541,7 @@ defmodule GangWeb.GameLive do
               @size == "large" && "w-10 h-10 text-lg",
               @selected_rank == rank &&
                 "ring-2 ring-ctp-lavender ring-offset-2 ring-offset-ctp-base",
-              case @current_color do
-                :white -> "bg-ctp-text border-ctp-overlay0 text-ctp-base"
-                :yellow -> "bg-ctp-yellow border-ctp-peach text-ctp-base"
-                :orange -> "bg-ctp-peach border-ctp-red text-ctp-base"
-                :red -> "bg-ctp-red border-ctp-maroon text-ctp-base"
-              end,
+              color_classes(@current_color),
               claimed && "opacity-0",
               !@player && "opacity-50 cursor-not-allowed",
               can_claim_from_other &&
@@ -613,7 +574,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-      
+
     <!-- Game Table Section -->
       <div class="bg-ctp-mantle rounded-lg p-4">
         <div class="flex flex-col items-center">
@@ -633,7 +594,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-      
+
     <!-- Current Player Section -->
       <%= if @player_split.current_player do %>
         <div class={[
@@ -646,7 +607,7 @@ defmodule GangWeb.GameLive do
           <div class="flex flex-col gap-2">
             <div class="flex justify-center gap-2">
               <%= for card <- @player_split.current_player.cards do %>
-                <.card card={card} size="normal" />
+                <CardComponents.card card={card} size="normal" />
               <% end %>
             </div>
             <%= if @game.current_round == :evaluation && @game.evaluated_hands do %>
@@ -707,7 +668,6 @@ defmodule GangWeb.GameLive do
   end
 
   def circular_players(assigns) do
-    # Move calculations into assigns
     assigns =
       assigns
       |> assign(:rotated_players, rotate_players_for_circle(assigns.players, assigns.player_name))
@@ -772,279 +732,5 @@ defmodule GangWeb.GameLive do
     |> Enum.flat_map(& &1.rank_chips)
     |> Enum.filter(&(&1.color == current_color))
     |> Enum.map(& &1.rank)
-  end
-
-  # Card component
-  attr :card, Card, required: true
-  attr :revealed, :boolean, default: true
-  # Can be "small", "normal", or "large"
-  attr :size, :string, default: "normal"
-
-  def card(assigns) do
-    ~H"""
-    <div class={
-      [
-        "group rounded-xl flex flex-col flex-shrink-0 items-center justify-between font-bold relative cursor-default",
-        "transform transition-all duration-300 hover:scale-105 hover:-translate-y-1",
-        "shadow-lg hover:shadow-xl border-2",
-        # Size classes
-        case @size do
-          "extra_small" -> "w-12 h-18 text-sm"
-          "small" -> "w-14 h-20 p-2 text-sm"
-          "normal" -> "w-[4.5rem] h-[6.5rem] p-2"
-          "large" -> "w-20 h-28 p-3"
-        end,
-        # Color classes
-        if @revealed do
-          case @card.suit do
-            :hearts ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
-
-            :diamonds ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
-
-            :clubs ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
-
-            :spades ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
-          end
-        else
-          "bg-gradient-to-br from-ctp-surface0 to-ctp-mantle border-ctp-overlay0/20"
-        end
-      ]
-    }>
-      <%= if @revealed do %>
-        <!-- Top rank -->
-        <div class={[
-          "self-start font-extrabold tracking-tight",
-          case @size do
-            "small" -> "text-base"
-            "normal" -> "text-lg"
-            "large" -> "text-xl"
-          end
-        ]}>
-          {case @card.rank do
-            14 -> "A"
-            13 -> "K"
-            12 -> "Q"
-            11 -> "J"
-            n -> "#{n}"
-          end}
-        </div>
-        
-    <!-- Center suit with glow effect -->
-        <div class={[
-          "transform transition-all duration-300 group-hover:scale-110",
-          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-          case @size do
-            "small" -> "text-2xl"
-            "normal" -> "text-3xl"
-            "large" -> "text-4xl"
-          end,
-          case @card.suit do
-            suit when suit in [:hearts, :diamonds] -> "drop-shadow-[0_0_3px_rgba(237,135,150,0.5)]"
-            _ -> "drop-shadow-[0_0_3px_rgba(205,214,244,0.5)]"
-          end
-        ]}>
-          {case @card.suit do
-            :hearts -> "♥"
-            :diamonds -> "♦"
-            :clubs -> "♣"
-            :spades -> "♠"
-          end}
-        </div>
-        
-    <!-- Bottom rank (inverted) -->
-        <div class={[
-          "self-end font-extrabold tracking-tight rotate-180",
-          case @size do
-            "small" -> "text-base"
-            "normal" -> "text-lg"
-            "large" -> "text-xl"
-          end
-        ]}>
-          {case @card.rank do
-            14 -> "A"
-            13 -> "K"
-            12 -> "Q"
-            11 -> "J"
-            n -> "#{n}"
-          end}
-        </div>
-        
-    <!-- Subtle shine effect -->
-        <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        </div>
-      <% else %>
-        <!-- Card back design -->
-        <div class="absolute inset-2 rounded-lg bg-ctp-surface0 overflow-hidden">
-          <!-- Animated pattern -->
-          <div class="absolute inset-0 bg-ctp-overlay0/10">
-            <div class="absolute inset-0 grid grid-cols-3 gap-1 p-1">
-              <%= for _i <- 1..9 do %>
-                <div class="aspect-square rounded-sm bg-ctp-overlay0/10 animate-pulse"></div>
-              <% end %>
-            </div>
-          </div>
-          <!-- Center diamond -->
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class={[
-              "rotate-45 bg-ctp-overlay0/20 animate-pulse",
-              case @size do
-                "small" -> "w-6 h-6"
-                "normal" -> "w-7 h-7"
-                "large" -> "w-8 h-8"
-              end
-            ]}>
-            </div>
-          </div>
-          <!-- Corner accents -->
-          <div class="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
-          </div>
-          <div class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
-          </div>
-          <div class="absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
-          </div>
-          <div class="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-ctp-overlay0/20 animate-pulse">
-          </div>
-        </div>
-      <% end %>
-    </div>
-    """
-  end
-
-  def hand_ranking_guide(assigns) do
-    ~H"""
-    <div class="fixed inset-0 bg-ctp-base/80 backdrop-blur-sm z-50 flex items-center justify-center p-1 pb-6">
-      <div class="bg-ctp-mantle rounded-lg shadow-xl w-full max-w-2xl max-h-[60vh] overflow-y-auto">
-        <div class="p-2 sm:p-4">
-          <div class="flex justify-around items-center sticky top-0 bg-ctp-mantle z-10 py-4">
-            <h2 class="text-lg sm:text-2xl font-bold text-ctp-text">Hand Ranking Guide</h2>
-            <button
-              class="text-ctp-subtext0 hover:text-ctp-text transition-colors"
-              phx-click="toggle_hand_guide"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 sm:h-6 sm:w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div class="space-y-1 sm:space-y-2">
-            <div
-              :for={
-                {hand_name, example_cards} <- [
-                  {"Royal Flush",
-                   [
-                     %Card{rank: 14, suit: :hearts},
-                     %Card{rank: 13, suit: :hearts},
-                     %Card{rank: 12, suit: :hearts},
-                     %Card{rank: 11, suit: :hearts},
-                     %Card{rank: 10, suit: :hearts}
-                   ]},
-                  {"Straight Flush",
-                   [
-                     %Card{rank: 9, suit: :spades},
-                     %Card{rank: 8, suit: :spades},
-                     %Card{rank: 7, suit: :spades},
-                     %Card{rank: 6, suit: :spades},
-                     %Card{rank: 5, suit: :spades}
-                   ]},
-                  {"Four of a Kind",
-                   [
-                     %Card{rank: 10, suit: :hearts},
-                     %Card{rank: 10, suit: :diamonds},
-                     %Card{rank: 10, suit: :clubs},
-                     %Card{rank: 10, suit: :spades},
-                     %Card{rank: 5, suit: :hearts}
-                   ]},
-                  {"Full House",
-                   [
-                     %Card{rank: 7, suit: :hearts},
-                     %Card{rank: 7, suit: :diamonds},
-                     %Card{rank: 7, suit: :clubs},
-                     %Card{rank: 4, suit: :spades},
-                     %Card{rank: 4, suit: :hearts}
-                   ]},
-                  {"Flush",
-                   [
-                     %Card{rank: 14, suit: :diamonds},
-                     %Card{rank: 10, suit: :diamonds},
-                     %Card{rank: 8, suit: :diamonds},
-                     %Card{rank: 6, suit: :diamonds},
-                     %Card{rank: 3, suit: :diamonds}
-                   ]},
-                  {"Straight",
-                   [
-                     %Card{rank: 10, suit: :hearts},
-                     %Card{rank: 9, suit: :diamonds},
-                     %Card{rank: 8, suit: :clubs},
-                     %Card{rank: 7, suit: :spades},
-                     %Card{rank: 6, suit: :hearts}
-                   ]},
-                  {"Three of a Kind",
-                   [
-                     %Card{rank: 8, suit: :hearts},
-                     %Card{rank: 8, suit: :diamonds},
-                     %Card{rank: 8, suit: :clubs},
-                     %Card{rank: 5, suit: :spades},
-                     %Card{rank: 2, suit: :hearts}
-                   ]},
-                  {"Two Pair",
-                   [
-                     %Card{rank: 9, suit: :hearts},
-                     %Card{rank: 9, suit: :diamonds},
-                     %Card{rank: 5, suit: :clubs},
-                     %Card{rank: 5, suit: :spades},
-                     %Card{rank: 2, suit: :hearts}
-                   ]},
-                  {"Pair",
-                   [
-                     %Card{rank: 10, suit: :hearts},
-                     %Card{rank: 10, suit: :diamonds},
-                     %Card{rank: 8, suit: :clubs},
-                     %Card{rank: 5, suit: :spades},
-                     %Card{rank: 2, suit: :hearts}
-                   ]},
-                  {"High Card",
-                   [
-                     %Card{rank: 14, suit: :hearts},
-                     %Card{rank: 10, suit: :diamonds},
-                     %Card{rank: 8, suit: :clubs},
-                     %Card{rank: 5, suit: :spades},
-                     %Card{rank: 2, suit: :hearts}
-                   ]}
-                ]
-              }
-              class="flex flex-col justify-center items-center gap-1 p-1 sm:p-2 bg-ctp-base rounded-lg"
-            >
-              <div class="font-medium text-ctp-text w-full text-center">
-                {hand_name}
-              </div>
-              <div class="flex gap-0 overflow-x-auto w-full justify-center">
-                <%= for card <- example_cards do %>
-                  <div class="scale-[0.9] origin-center">
-                    <.card card={card} size="small" />
-                  </div>
-                <% end %>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    """
   end
 end

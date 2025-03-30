@@ -1,0 +1,28 @@
+<div class="max-w-7xl mx-auto px-4 py-8 text-ctp-text min-h-screen">
+  <.game_header game_id={@game_id} player={@player} show_hand_guide={@show_hand_guide} />
+  <.game_status game={@game} player={@player} />
+
+  <%= if @game.status == :playing do %>
+    <div class={[
+      "relative mb-8",
+      "md:min-h-[700px] lg:min-h-[800px]"
+    ]}>
+      <.mobile_layout
+        player_split={@player_split}
+        game={@game}
+        player={@player}
+        player_name={@player_name}
+        selected_rank_chip={@selected_rank_chip}
+      />
+
+      <.desktop_layout
+        game={@game}
+        player={@player}
+        player_name={@player_name}
+        selected_rank_chip={@selected_rank_chip}
+      />
+    </div>
+  <% else %>
+    <.waiting_room game={@game} />
+  <% end %>
+</div> 
