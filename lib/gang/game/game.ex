@@ -11,9 +11,9 @@ defmodule Gang.Game do
 
   use GenServer, restart: :temporary
 
-  alias Gang.PubSub
   alias Gang.Game.Player
   alias Gang.Game.State
+  alias Gang.PubSub
 
   # How long to wait for a player to reconnect after they leave the game
   @permanently_remove_player_timeout 30_000
@@ -27,8 +27,7 @@ defmodule Gang.Game do
   @doc """
   Adds a player to the game.
   """
-  def add_player(code, player_name, player_id \\ nil)
-      when is_binary(code) and is_binary(player_name) do
+  def add_player(code, player_name, player_id \\ nil) when is_binary(code) and is_binary(player_name) do
     GenServer.call(via_tuple(code), {:join, player_name, player_id})
   end
 
@@ -42,8 +41,7 @@ defmodule Gang.Game do
   @doc """
   Updates a player's connection status.
   """
-  def update_connection(code, player_id, connected)
-      when is_binary(code) and is_binary(player_id) do
+  def update_connection(code, player_id, connected) when is_binary(code) and is_binary(player_id) do
     GenServer.call(via_tuple(code), {:update_connection, player_id, connected})
   end
 
@@ -74,8 +72,7 @@ defmodule Gang.Game do
   @doc """
   Claims a rank chip.
   """
-  def claim_chip(code, player_id, rank, color)
-      when is_binary(code) and is_binary(player_id) do
+  def claim_chip(code, player_id, rank, color) when is_binary(code) and is_binary(player_id) do
     GenServer.call(via_tuple(code), {:claim_rank_chip, player_id, rank, color})
   end
 
@@ -86,8 +83,7 @@ defmodule Gang.Game do
   @doc """
   Returns a rank chip.
   """
-  def return_chip(code, player_id, rank, color)
-      when is_binary(code) and is_binary(player_id) do
+  def return_chip(code, player_id, rank, color) when is_binary(code) and is_binary(player_id) do
     GenServer.call(via_tuple(code), {:return_rank_chip, player_id, rank, color})
   end
 
@@ -123,9 +119,10 @@ defmodule Gang.Game do
   def handle_call({:join, player_name, player_id}, _from, state) do
     # Check if player is already in the game by ID first, then by name if no ID
     existing_player =
-      cond do
-        player_id -> Enum.find(state.players, &(&1.id == player_id))
-        true -> Enum.find(state.players, &(&1.name == player_name))
+      if player_id do
+        Enum.find(state.players, &(&1.id == player_id))
+      else
+        Enum.find(state.players, &(&1.name == player_name))
       end
 
     if existing_player do

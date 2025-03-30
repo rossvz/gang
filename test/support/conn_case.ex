@@ -19,15 +19,14 @@ defmodule GangWeb.ConnCase do
 
   using do
     quote do
+      use GangWeb, :verified_routes
+      import GangWeb.ConnCase
+      import Phoenix.ConnTest
+      import Plug.Conn
       # The default endpoint for testing
       @endpoint GangWeb.Endpoint
 
-      use GangWeb, :verified_routes
-
       # Import conveniences for testing with connections
-      import Plug.Conn
-      import Phoenix.ConnTest
-      import GangWeb.ConnCase
     end
   end
 

@@ -136,13 +136,14 @@ defmodule Gang.Game.HandEvaluator do
   end
 
   defp is_straight(cards) do
-    ranks = Enum.map(cards, & &1.rank) |> Enum.sort(:desc)
+    ranks = cards |> Enum.map(& &1.rank) |> Enum.sort(:desc)
 
     # Handle special case of A-5-4-3-2 straight (A can be low)
     if ranks == [14, 5, 4, 3, 2] do
       true
     else
-      Enum.zip(ranks, tl(ranks))
+      ranks
+      |> Enum.zip(tl(ranks))
       |> Enum.all?(fn {a, b} -> a == b + 1 end)
     end
   end
@@ -172,8 +173,8 @@ defmodule Gang.Game.HandEvaluator do
   end
 
   defp compare_high_cards(cards1, cards2) do
-    ranks1 = Enum.map(cards1, & &1.rank) |> Enum.sort(:desc)
-    ranks2 = Enum.map(cards2, & &1.rank) |> Enum.sort(:desc)
+    ranks1 = cards1 |> Enum.map(& &1.rank) |> Enum.sort(:desc)
+    ranks2 = cards2 |> Enum.map(& &1.rank) |> Enum.sort(:desc)
 
     compare_ranks(ranks1, ranks2)
   end

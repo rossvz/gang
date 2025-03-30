@@ -1,7 +1,11 @@
 defmodule Gang.Game.EvaluatorTest do
   use ExUnit.Case
 
-  alias Gang.Game.{Card, Evaluator, Player, RankChip, State}
+  alias Gang.Game.Card
+  alias Gang.Game.Evaluator
+  alias Gang.Game.Player
+  alias Gang.Game.RankChip
+  alias Gang.Game.State
 
   describe "evaluate_round/1" do
     test "returns :vault when player hands match rank chip order" do
@@ -224,94 +228,68 @@ defmodule Gang.Game.EvaluatorTest do
       assert elem(player2_hand, 0) == :pair
     end
 
-    test "returns correct result with 2 vaults already" do
-      # Create a game state in round_end with 2 vaults already
-      state = %State{
-        current_round: :river,
-        status: :playing,
-        vaults: 2,
-        alarms: 0,
-        players: [
-          %Player{
-            name: "player1",
-            cards: [
-              %Card{rank: 2, suit: :hearts},
-              %Card{rank: 3, suit: :hearts}
-            ],
-            rank_chips: [
-              %RankChip{rank: 1, color: :red}
-            ]
-          },
-          %Player{
-            name: "player2",
-            cards: [
-              %Card{rank: 10, suit: :spades},
-              %Card{rank: 10, suit: :hearts}
-            ],
-            rank_chips: [
-              %RankChip{rank: 2, color: :red}
-            ]
-          }
-        ],
-        community_cards: [
-          %Card{rank: 5, suit: :diamonds},
-          %Card{rank: 6, suit: :clubs},
-          %Card{rank: 7, suit: :spades},
-          %Card{rank: 8, suit: :hearts},
-          %Card{rank: 9, suit: :diamonds}
-        ]
-      }
+    test "handles cases of a 'true tie' where community cards are the best hand" do
+      # test variations of rank chip distributions
+      # regardles of what order the chips are in, it should be a vault
+      # because its a true tie (since comnmunity hand is best hand)
+      chip_variations = [
+        [1, 2, 3],
+        [3, 2, 1],
+        [1, 3, 2]
+      ]
 
-      result = Evaluator.evaluate_round(state)
+      for [p1, p2, p3] <- chip_variations do
+        state = %State{
+          current_round: :river,
+          vaults: 0,
+          alarms: 0,
+          players: [
+            %Player{
+              name: "player1",
+              cards: [
+                %Card{rank: 2, suit: :hearts},
+                %Card{rank: 3, suit: :hearts}
+              ],
+              rank_chips: [
+                %RankChip{rank: p1, color: :red}
+              ]
+            },
+            %Player{
+              name: "player2",
+              cards: [
+                %Card{rank: 7, suit: :spades},
+                %Card{rank: 8, suit: :spades}
+              ],
+              rank_chips: [
+                %RankChip{rank: p2, color: :red}
+              ]
+            },
+            %Player{
+              name: "player3",
+              cards: [
+                %Card{rank: 10, suit: :diamonds},
+                %Card{rank: 10, suit: :clubs}
+              ],
+              rank_chips: [
+                %RankChip{rank: p3, color: :red}
+              ]
+            }
+          ],
 
-      assert result.round_result == :vault
-      assert is_map(result.player_hands)
-      assert map_size(result.player_hands) == 2
-    end
+          # communinty cards is a royal flush
+          community_cards: [
+            %Card{rank: 14, suit: :hearts},
+            %Card{rank: 13, suit: :hearts},
+            %Card{rank: 12, suit: :hearts},
+            %Card{rank: 11, suit: :hearts},
+            %Card{rank: 10, suit: :hearts}
+          ]
+        }
 
-    test "returns correct result with 2 alarms already" do
-      # Create a game state in round_end with 2 alarms already
-      state = %State{
-        current_round: :river,
-        status: :playing,
-        vaults: 0,
-        alarms: 2,
-        players: [
-          %Player{
-            name: "player1",
-            cards: [
-              %Card{rank: 10, suit: :spades},
-              %Card{rank: 10, suit: :hearts}
-            ],
-            rank_chips: [
-              %RankChip{rank: 1, color: :red}
-            ]
-          },
-          %Player{
-            name: "player2",
-            cards: [
-              %Card{rank: 2, suit: :hearts},
-              %Card{rank: 3, suit: :hearts}
-            ],
-            rank_chips: [
-              %RankChip{rank: 2, color: :red}
-            ]
-          }
-        ],
-        community_cards: [
-          %Card{rank: 5, suit: :diamonds},
-          %Card{rank: 6, suit: :clubs},
-          %Card{rank: 7, suit: :spades},
-          %Card{rank: 8, suit: :hearts},
-          %Card{rank: 9, suit: :diamonds}
-        ]
-      }
+        result = Evaluator.evaluate_round(state)
 
-      result = Evaluator.evaluate_round(state)
-
-      assert result.round_result == :alarm
-      assert is_map(result.player_hands)
-      assert map_size(result.player_hands) == 2
+        assert result.round_result == :vault
+      end
     end
   end
 

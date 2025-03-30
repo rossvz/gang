@@ -2,7 +2,10 @@ defmodule Gang.GameTest do
   use ExUnit.Case, async: true
 
   alias Gang.Game
-  alias Gang.Game.{Card, Player, RankChip, State}
+  alias Gang.Game.Card
+  alias Gang.Game.Player
+  alias Gang.Game.RankChip
+  alias Gang.Game.State
 
   # Helper function to create a test process with a known state
   defp create_test_game(state) do
@@ -202,7 +205,7 @@ defmodule Gang.GameTest do
         ],
         community_cards: [nil, nil, nil, nil, nil],
         all_rank_chips_claimed?: true,
-        deck: Enum.map(1..10, fn n -> %Gang.Game.Card{rank: n, suit: :clubs} end)
+        deck: Enum.map(1..10, fn n -> %Card{rank: n, suit: :clubs} end)
       }
 
       game_pid = create_test_game(state)

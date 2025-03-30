@@ -1,7 +1,10 @@
 defmodule Gang.Game.StateTest do
   use ExUnit.Case
 
-  alias Gang.Game.{Player, RankChip, State}
+  alias Gang.Game.Card
+  alias Gang.Game.Player
+  alias Gang.Game.RankChip
+  alias Gang.Game.State
 
   describe "new/1" do
     test "creates a new state with a game code" do
@@ -99,7 +102,7 @@ defmodule Gang.Game.StateTest do
       player = Player.new("Alice")
       state = State.add_player(state, %{player | connected: true})
 
-      assert state.players |> length() == 1
+      assert length(state.players) == 1
 
       updated_state = State.update_player_connection(state, player.id, false)
       updated_player = Enum.find(updated_state.players, &(&1.name == "Alice"))
@@ -237,7 +240,8 @@ defmodule Gang.Game.StateTest do
 
       # each player takes a chip
       state =
-        State.claim_chip(state, alice.id, 1, :white)
+        state
+        |> State.claim_chip(alice.id, 1, :white)
         |> State.claim_chip(bob.id, 2, :white)
         |> State.claim_chip(charlie.id, 3, :white)
 
@@ -273,7 +277,7 @@ defmodule Gang.Game.StateTest do
         status: :playing,
         current_round: :preflop,
         current_round_color: :white,
-        deck: Enum.map(1..10, fn n -> %Gang.Game.Card{rank: n, suit: :hearts} end)
+        deck: Enum.map(1..10, fn n -> %Card{rank: n, suit: :hearts} end)
       }
 
       updated_state = State.advance_round(state)
@@ -290,11 +294,11 @@ defmodule Gang.Game.StateTest do
       state = %State{
         status: :playing,
         current_round: :flop,
-        deck: Enum.map(1..10, fn n -> %Gang.Game.Card{rank: n, suit: :hearts} end),
+        deck: Enum.map(1..10, fn n -> %Card{rank: n, suit: :hearts} end),
         community_cards: [
-          %Gang.Game.Card{rank: 11, suit: :hearts},
-          %Gang.Game.Card{rank: 12, suit: :hearts},
-          %Gang.Game.Card{rank: 13, suit: :hearts},
+          %Card{rank: 11, suit: :hearts},
+          %Card{rank: 12, suit: :hearts},
+          %Card{rank: 13, suit: :hearts},
           nil,
           nil
         ]
@@ -313,12 +317,12 @@ defmodule Gang.Game.StateTest do
       state = %State{
         status: :playing,
         current_round: :turn,
-        deck: Enum.map(1..10, fn n -> %Gang.Game.Card{rank: n, suit: :hearts} end),
+        deck: Enum.map(1..10, fn n -> %Card{rank: n, suit: :hearts} end),
         community_cards: [
-          %Gang.Game.Card{rank: 11, suit: :hearts},
-          %Gang.Game.Card{rank: 12, suit: :hearts},
-          %Gang.Game.Card{rank: 13, suit: :hearts},
-          %Gang.Game.Card{rank: 1, suit: :hearts},
+          %Card{rank: 11, suit: :hearts},
+          %Card{rank: 12, suit: :hearts},
+          %Card{rank: 13, suit: :hearts},
+          %Card{rank: 1, suit: :hearts},
           nil
         ]
       }

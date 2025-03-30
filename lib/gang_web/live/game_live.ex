@@ -1,10 +1,11 @@
 defmodule GangWeb.GameLive do
+  @moduledoc false
   use GangWeb, :live_view
-
-  on_mount {GangWeb.ParamHandlers, :extract_query_params}
 
   alias Gang.Game.Card
   alias Gang.Games
+
+  on_mount {GangWeb.ParamHandlers, :extract_query_params}
 
   # Add types for clarity
   @type player_split :: %{
@@ -19,12 +20,7 @@ defmodule GangWeb.GameLive do
     player_id = params["player_id"] || socket.assigns.player_id
 
     # Redirect to lobby if no player ID
-    if !player_id do
-      {:ok,
-       socket
-       |> put_flash(:error, "Please set your name in the lobby first")
-       |> push_navigate(to: ~p"/")}
-    else
+    if player_id do
       if connected?(socket) do
         Games.subscribe(game_id)
         if player_name, do: {:ok, _} = Games.join_game(game_id, player_name, player_id)
@@ -32,7 +28,7 @@ defmodule GangWeb.GameLive do
 
       case Games.get_game(game_id) do
         {:ok, game} ->
-          player = if player_id, do: Enum.find(game.players, &(&1.id == player_id)), else: nil
+          player = if player_id, do: Enum.find(game.players, &(&1.id == player_id))
 
           # Get unique players and split into current and others
           player_split = split_players(game.players, player_id)
@@ -53,20 +49,11 @@ defmodule GangWeb.GameLive do
         {:error, _} ->
           {:ok, push_navigate(socket, to: ~p"/")}
       end
-    end
-  end
-
-  # Move player splitting logic out of template
-  @spec split_players(list(map()), String.t() | nil) :: player_split()
-  defp split_players(players, current_player_id) do
-    unique_players = Enum.uniq_by(players, & &1.id)
-
-    if current_player_id do
-      current_player = Enum.find(unique_players, &(&1.id == current_player_id))
-      other_players = unique_players |> List.delete(current_player)
-      %{current_player: current_player, other_players: other_players}
     else
-      %{current_player: nil, other_players: unique_players}
+      {:ok,
+       socket
+       |> put_flash(:error, "Please set your name in the lobby first")
+       |> push_navigate(to: ~p"/")}
     end
   end
 
@@ -106,11 +93,7 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
-  def handle_event(
-        "claim_from_player",
-        %{"rank" => rank, "color" => color, "player" => from_player},
-        socket
-      ) do
+  def handle_event("claim_from_player", %{"rank" => rank, "color" => color, "player" => from_player}, socket) do
     {rank, _} = Integer.parse(rank)
     color = String.to_existing_atom(color)
 
@@ -155,6 +138,11 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
+  def handle_event("toggle_hand_guide", _params, socket) do
+    {:noreply, assign(socket, show_hand_guide: !socket.assigns.show_hand_guide)}
+  end
+
+  @impl true
   def handle_info(:advance_after_evaluation, socket) do
     Games.advance_round(socket.assigns.game_id)
     {:noreply, socket}
@@ -163,7 +151,7 @@ defmodule GangWeb.GameLive do
   def handle_info({:game_updated, game}, socket) do
     # Update the player object and player split when game state changes
     player_id = socket.assigns.player_id
-    player = if player_id, do: Enum.find(game.players, &(&1.id == player_id)), else: nil
+    player = if player_id, do: Enum.find(game.players, &(&1.id == player_id))
     player_split = split_players(game.players, player_id)
 
     {:noreply,
@@ -173,9 +161,17 @@ defmodule GangWeb.GameLive do
      |> assign(player_split: player_split)}
   end
 
-  @impl true
-  def handle_event("toggle_hand_guide", _params, socket) do
-    {:noreply, assign(socket, show_hand_guide: !socket.assigns.show_hand_guide)}
+  @spec split_players(list(map()), String.t() | nil) :: player_split()
+  defp split_players(players, current_player_id) do
+    unique_players = Enum.uniq_by(players, & &1.id)
+
+    if current_player_id do
+      current_player = Enum.find(unique_players, &(&1.id == current_player_id))
+      other_players = List.delete(unique_players, current_player)
+      %{current_player: current_player, other_players: other_players}
+    else
+      %{current_player: nil, other_players: unique_players}
+    end
   end
 
   def rank_chip_button(assigns) do

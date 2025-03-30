@@ -1,4 +1,5 @@
 defmodule GangWeb.LobbyLive do
+  @moduledoc false
   use GangWeb, :live_view
 
   alias Gang.Games
@@ -13,7 +14,7 @@ defmodule GangWeb.LobbyLive do
     player_id = Map.get(socket.assigns, :player_id)
 
     # If player has a name but no ID, generate one
-    player_id = if !player_id, do: Ecto.UUID.generate(), else: player_id
+    player_id = if player_id, do: player_id, else: Ecto.UUID.generate()
 
     socket =
       socket

@@ -45,10 +45,7 @@ defmodule Gang.Games do
   """
   def get_player_count(code) do
     with {:ok, state} <- get_game(code) do
-      active_count =
-        state.players
-        |> Enum.filter(& &1.connected)
-        |> Enum.count()
+      active_count = Enum.count(state.players, & &1.connected)
 
       {:ok, active_count}
     end
@@ -73,9 +70,10 @@ defmodule Gang.Games do
       # Check if player already exists by ID first, then by name if no ID
       with {:ok, state} <- get_game(code) do
         existing_player =
-          cond do
-            player_id -> Enum.find(state.players, &(&1.id == player_id))
-            true -> Enum.find(state.players, &(&1.name == player_name))
+          if player_id do
+            Enum.find(state.players, &(&1.id == player_id))
+          else
+            Enum.find(state.players, &(&1.name == player_name))
           end
 
         if existing_player do
@@ -177,15 +175,19 @@ defmodule Gang.Games do
   """
   def return_rank_chip(code, player_id) do
     if GameSupervisor.game_exists?(code) do
-      with {:ok, state} <- get_game(code),
-           player = Enum.find(state.players, &(&1.id == player_id)),
-           chip = Enum.find(player.rank_chips, &(&1.color == state.current_round_color)) do
-        result = Game.return_chip(code, player_id, chip.rank, chip.color)
-        broadcast_update(code)
-        result
-      else
-        nil -> {:error, :chip_not_found}
-        error -> error
+      case get_game(code) do
+        {:ok, state} ->
+          player = Enum.find(state.players, &(&1.id == player_id))
+          chip = Enum.find(player.rank_chips, &(&1.color == state.current_round_color))
+          result = Game.return_chip(code, player_id, chip.rank, chip.color)
+          broadcast_update(code)
+          result
+
+        nil ->
+          {:error, :chip_not_found}
+
+        error ->
+          error
       end
     else
       {:error, :game_not_found}
@@ -238,7 +240,7 @@ defmodule Gang.Games do
   @doc """
   Subscribe to all games updates (for listings)
   """
-  def subscribe_to_games() do
+  def subscribe_to_games do
     PubSub.subscribe(Gang.PubSub, "games")
   end
 

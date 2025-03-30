@@ -1,4 +1,5 @@
 defmodule GangWeb.ParamHandlers do
+  @moduledoc false
   import Phoenix.Component
 
   def on_mount(:extract_query_params, params, _session, socket) do

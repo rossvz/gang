@@ -4,6 +4,7 @@ defmodule Gang.Game.Supervisor do
   """
 
   use Supervisor
+
   require Logger
 
   def start_link(init_arg) do
@@ -98,7 +99,6 @@ defmodule Gang.Game.Supervisor do
 
     0..3
     |> Enum.map(fn _ -> :rand.uniform(String.length(chars)) - 1 end)
-    |> Enum.map(fn idx -> String.at(chars, idx) end)
-    |> Enum.join("")
+    |> Enum.map_join("", fn idx -> String.at(chars, idx) end)
   end
 end

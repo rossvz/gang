@@ -3,7 +3,8 @@ defmodule Gang.Game.Player do
   Represents a player in the game with their cards and claimed rank chips.
   """
 
-  alias Gang.Game.{Card, RankChip}
+  alias Gang.Game.Card
+  alias Gang.Game.RankChip
 
   @type t :: %__MODULE__{
           id: String.t(),
@@ -38,27 +39,27 @@ defmodule Gang.Game.Player do
   Marks a player as connected.
   """
   def connect(player) do
-    %__MODULE__{player | connected: true, last_activity: DateTime.utc_now()}
+    %{player | connected: true, last_activity: DateTime.utc_now()}
   end
 
   @doc """
   Marks a player as disconnected.
   """
   def disconnect(player) do
-    %__MODULE__{player | connected: false}
+    %{player | connected: false}
   end
 
   @doc """
   Updates the player's activity timestamp.
   """
   def touch(player) do
-    %__MODULE__{player | last_activity: DateTime.utc_now()}
+    %{player | last_activity: DateTime.utc_now()}
   end
 
   @doc """
   Deal cards to the player.
   """
   def deal_cards(player, cards) do
-    %__MODULE__{player | cards: cards}
+    %{player | cards: cards}
   end
 end

@@ -9,8 +9,8 @@ defmodule Gang.Game.DeckTest do
       assert length(deck) == 52
 
       # Check that the deck has all ranks and suits
-      ranks = Enum.map(deck, & &1.rank) |> Enum.sort() |> Enum.uniq()
-      suits = Enum.map(deck, & &1.suit) |> Enum.sort() |> Enum.uniq()
+      ranks = deck |> Enum.map(& &1.rank) |> Enum.sort() |> Enum.uniq()
+      suits = deck |> Enum.map(& &1.suit) |> Enum.sort() |> Enum.uniq()
 
       assert ranks == Enum.to_list(2..14)
       assert suits == [:clubs, :diamonds, :hearts, :spades]

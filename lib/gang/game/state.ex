@@ -92,7 +92,7 @@ defmodule Gang.Game.State do
   """
   def add_player(state, player) do
     if state.status in [:waiting] do
-      %__MODULE__{
+      %{
         state
         | players: state.players ++ [player],
           last_active: DateTime.utc_now()
@@ -108,7 +108,7 @@ defmodule Gang.Game.State do
   def remove_player(state, player_id) do
     updated_players = Enum.reject(state.players, &(&1.id == player_id))
 
-    %__MODULE__{
+    %{
       state
       | players: updated_players,
         last_active: DateTime.utc_now()
@@ -121,10 +121,10 @@ defmodule Gang.Game.State do
   def start_game(state) do
     if state.status == :waiting && length(state.players) >= 3 do
       # Shuffle a new deck and deal cards to each player
-      deck = Deck.new() |> Deck.shuffle()
+      deck = Deck.shuffle(Deck.new())
       {players_with_cards, remaining_deck} = deal_player_cards(state.players, deck)
 
-      %__MODULE__{
+      %{
         state
         | status: :playing,
           current_round: :preflop,
@@ -179,7 +179,8 @@ defmodule Gang.Game.State do
               {cards, deck_after_deal} = Deck.deal(state.deck, 3)
 
               updated_cards =
-                List.replace_at(state.community_cards, 0, Enum.at(cards, 0))
+                state.community_cards
+                |> List.replace_at(0, Enum.at(cards, 0))
                 |> List.replace_at(1, Enum.at(cards, 1))
                 |> List.replace_at(2, Enum.at(cards, 2))
 
@@ -198,7 +199,7 @@ defmodule Gang.Game.State do
               {:river, :red, updated_cards, deck_after_deal}
           end
 
-        %__MODULE__{
+        %{
           state
           | current_round: next_round,
             current_round_color: next_color,
@@ -232,10 +233,10 @@ defmodule Gang.Game.State do
   def start_new_hand(state) do
     if state.current_round == :evaluation do
       # Deal new cards to players
-      deck = Deck.new() |> Deck.shuffle()
+      deck = Deck.shuffle(Deck.new())
       {players_with_cards, remaining_deck} = deal_player_cards(state.players, deck)
 
-      %__MODULE__{
+      %{
         state
         | current_round: :preflop,
           current_phase: :rank_chip_selection,
@@ -303,7 +304,7 @@ defmodule Gang.Game.State do
           Enum.any?(p.rank_chips, &(&1.color == color_atom))
         end)
 
-      %__MODULE__{
+      %{
         state
         | players: updated_players,
           all_rank_chips_claimed?: all_claimed,
@@ -338,7 +339,7 @@ defmodule Gang.Game.State do
           Enum.any?(p.rank_chips, &(&1.color == state.current_round_color))
         end)
 
-      %__MODULE__{
+      %{
         state
         | players: updated_players,
           all_rank_chips_claimed?: all_claimed,
@@ -366,7 +367,7 @@ defmodule Gang.Game.State do
         end
       end)
 
-    %__MODULE__{state | players: updated_players, last_active: DateTime.utc_now()}
+    %{state | players: updated_players, last_active: DateTime.utc_now()}
   end
 
   @doc """
