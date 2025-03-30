@@ -342,15 +342,14 @@ defmodule GangWeb.GameLive do
 
   def game_actions(assigns) do
     ~H"""
-    <div>
-      <%= if @game.status == :waiting && @player && length(@game.players) >= 3 do %>
-        <button
-          class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
-          phx-click="start_game"
-        >
-          Start Game
-        </button>
-      <% end %>
+    <div class="flex items-center flex-col">
+      <button
+        :if={@game.status == :waiting && @player && length(@game.players) >= 3}
+        class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
+        phx-click="start_game"
+      >
+        Start Game
+      </button>
 
       <%= if @game.status == :playing && @player do %>
         <%= if @game.current_phase == :rank_chip_selection && @game.all_rank_chips_claimed? do %>
@@ -372,15 +371,22 @@ defmodule GangWeb.GameLive do
 
         <%= if @game.current_round == :evaluation do %>
           <div class="flex flex-col items-center gap-4">
-            <div class="text-center">
-              <div class="text-lg font-bold mb-2">
-                <span :if={@game.vaults >= 3} class="text-ctp-green">
-                  Victory! You've secured the vault!
-                </span>
-                <span :if={@game.alarms >= 3} class="text-ctp-red">
-                  Game Over! Too many alarms triggered!
-                </span>
+            <div class="text-lg font-bold mb-2">
+              <div
+                :if={@game.last_round_result == :vault}
+                class="text-xl animate-pulse text-ctp-green"
+              >
+                Success! Vault Secured!
               </div>
+              <div :if={@game.last_round_result == :alarm} class="text-xl animate-pulse text-ctp-red">
+                Alarm Triggered!
+              </div>
+              <span :if={@game.vaults >= 3} class="text-ctp-green">
+                Victory! You've secured the vault!
+              </span>
+              <span :if={@game.alarms >= 3} class="text-ctp-red">
+                Game Over! Too many alarms triggered!
+              </span>
             </div>
           </div>
         <% end %>
