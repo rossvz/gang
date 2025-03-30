@@ -34,12 +34,8 @@ RUN mix local.hex --force && \
 # set build ENV
 ENV MIX_ENV="prod"
 
-RUN pwd
-RUN rm -rf _build
-
 # install mix dependencies
 COPY mix.exs mix.lock ./
-RUN mix deps.clean --all
 RUN mix deps.get --only $MIX_ENV
 RUN mkdir config
 
@@ -47,7 +43,7 @@ RUN mkdir config
 # to ensure any relevant config change will trigger the dependencies
 # to be re-compiled.
 COPY config/config.exs config/${MIX_ENV}.exs config/
-RUN mix deps.compile --force
+RUN mix deps.compile
 
 COPY priv priv
 
