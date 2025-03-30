@@ -52,7 +52,7 @@ defmodule Gang.Game.State do
           community_cards: list(Card.t() | nil),
           all_rank_chips_claimed?: boolean(),
           deck: list(Card.t()),
-          game_start: DateTime.t() | nil,
+          game_created: DateTime.t() | nil,
           last_active: DateTime.t(),
           evaluated_hands: map() | nil,
           last_round_result: round_result() | nil
@@ -71,7 +71,7 @@ defmodule Gang.Game.State do
     community_cards: [nil, nil, nil, nil, nil],
     all_rank_chips_claimed?: false,
     deck: [],
-    game_start: nil,
+    game_created: DateTime.utc_now(),
     last_active: DateTime.utc_now(),
     evaluated_hands: nil
   ]
@@ -82,7 +82,8 @@ defmodule Gang.Game.State do
   def new(code) do
     %__MODULE__{
       code: code,
-      last_active: DateTime.utc_now()
+      last_active: DateTime.utc_now(),
+      game_created: DateTime.utc_now()
     }
   end
 
@@ -132,7 +133,6 @@ defmodule Gang.Game.State do
           current_round_color: :white,
           players: players_with_cards,
           deck: remaining_deck,
-          game_start: DateTime.utc_now(),
           last_active: DateTime.utc_now()
       }
     else

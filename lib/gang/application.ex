@@ -17,7 +17,8 @@ defmodule Gang.Application do
       # Start the Game Supervisor
       {Gang.Game.Supervisor, []},
       # Start to serve requests, typically the last entry
-      GangWeb.Endpoint
+      GangWeb.Endpoint,
+      Gang.Janitor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

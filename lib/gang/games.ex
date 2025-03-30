@@ -7,6 +7,8 @@ defmodule Gang.Games do
   alias Gang.Game.Supervisor, as: GameSupervisor
   alias Phoenix.PubSub
 
+  require Logger
+
   @doc """
   Creates a new game and returns its join code.
   """
@@ -23,7 +25,7 @@ defmodule Gang.Games do
       {:ok, game} = get_game(game_id)
       game
     end)
-    |> Enum.sort_by(& &1.last_active, {:desc, DateTime})
+    |> Enum.sort_by(& &1.game_created, {:desc, DateTime})
   end
 
   @doc """
@@ -34,29 +36,6 @@ defmodule Gang.Games do
       Game.get_state(code)
     else
       {:error, :game_not_found}
-    end
-  end
-
-  @doc """
-  Gets the number of players in a game.
-  Excludes disconnected players!
-  If someone disconnects or goes to lobby there's a 30s grace period where they can rejoin
-  and not lose state.
-  """
-  def get_player_count(code) do
-    with {:ok, state} <- get_game(code) do
-      active_count = Enum.count(state.players, & &1.connected)
-
-      {:ok, active_count}
-    end
-  end
-
-  @doc """
-  Gets the status of a game.
-  """
-  def get_game_status(code) do
-    with {:ok, state} <- get_game(code) do
-      {:ok, state.status}
     end
   end
 

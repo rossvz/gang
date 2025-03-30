@@ -130,7 +130,7 @@ defmodule Gang.Game.StateTest do
       assert updated_state.current_round == :preflop
       assert updated_state.current_phase == :rank_chip_selection
       assert updated_state.current_round_color == :white
-      assert updated_state.game_start != nil
+      assert updated_state.game_created != nil
 
       # Each player should have 2 cards
       for player <- updated_state.players do
