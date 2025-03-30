@@ -42,18 +42,18 @@ module.exports = {
       keyframes: {
         "fade-in-out-1": {
           "0%, 100%": { opacity: "0" },
-          "30%, 70%": { opacity: "0.15" },
-          "50%": { opacity: "0.2" },
+          "30%, 70%": { opacity: "0.3" },
+          "50%": { opacity: "0.7" },
         },
         "fade-in-out-2": {
           "0%, 100%": { opacity: "0" },
-          "20%, 60%": { opacity: "0.12" },
-          "40%": { opacity: "0.18" },
+          "20%, 60%": { opacity: "0.33" },
+          "40%": { opacity: "0.44" },
         },
         "fade-in-out-3": {
           "0%, 100%": { opacity: "0" },
           "40%, 80%": { opacity: "0.1" },
-          "60%": { opacity: "0.15" },
+          "60%": { opacity: "0.80" },
         },
         "fade-float-1": {
           "0%, 100%": {
@@ -85,9 +85,9 @@ module.exports = {
         },
       },
       animation: {
-        "fade-in-out-1": "fade-in-out-1 12s ease-in-out infinite",
-        "fade-in-out-2": "fade-in-out-2 15s ease-in-out infinite",
-        "fade-in-out-3": "fade-in-out-3 18s ease-in-out infinite",
+        "fade-in-out-1": "fade-in-out-1 6s ease-in-out infinite",
+        "fade-in-out-2": "fade-in-out-2 7s ease-in-out infinite",
+        "fade-in-out-3": "fade-in-out-3 8s ease-in-out infinite",
         "fade-float-1": "fade-float-1 20s ease-in-out infinite",
         "fade-float-2": "fade-float-2 16s ease-in-out infinite",
       },

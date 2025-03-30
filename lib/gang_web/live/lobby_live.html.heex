@@ -1,18 +1,18 @@
-<div class="max-w-3xl mx-auto px-4 py-12">
+<div class="max-w-3xl mx-auto px-4 py-4 bg-opacity-15 backdrop-blur-md min-h-screen">
   <!-- Animated Header -->
-  <div class="text-center mb-12 transform hover:scale-105 transition-transform duration-300">
-    <h1 class="p-4 text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-ctp-mauve via-ctp-red to-ctp-peach bg-clip-text text-transparent animate-gradient">
+  <div class="text-center mb-4 transform hover:scale-105 transition-transform duration-300">
+    <h1 class="p-4 text-4xl md:text-5xl font-bold bg-gradient-to-r from-ctp-mauve via-ctp-red to-ctp-peach bg-clip-text text-transparent animate-gradient">
       The Gang
     </h1>
   </div>
   
 <!-- Player Name Input with Enhanced Styling -->
-  <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 mb-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+  <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 mb-4 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
     <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
       <span class="text-ctp-mauve">👤</span> Your Player Name: {@player_name}
     </h2>
     <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 justify-center">
         <div class="flex-grow">
           <.input
             type="text"
@@ -30,14 +30,14 @@
             type="submit"
             class="bg-ctp-mauve hover:bg-ctp-pink transition-colors duration-300 transform hover:scale-105"
           >
-            Update Name
+            Save
           </.button>
         </div>
       </div>
     </.form>
   </div>
 
-  <div :if={@player_name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-8">
+  <div :if={@player_name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <!-- Create Game Card -->
     <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
       <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
@@ -54,7 +54,10 @@
     </div>
     
 <!-- Join Game Card -->
-    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+    <div
+      :if={@player_name != ""}
+      class="bg-ctp-mantle/80 bg-opacity-10 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+    >
       <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
         <span class="text-ctp-blue">🤝</span> Join Existing Game
       </h2>
@@ -80,11 +83,11 @@
   </div>
   
 <!-- Active Games List with Enhanced Styling -->
-  <div class="mt-12">
+  <div :if={@player_name != ""} class="mt-6">
     <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
       <span class="text-ctp-peach">🎲</span> Active Games
     </h2>
-    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 overflow-hidden transform hover:shadow-2xl transition-all duration-300">
+    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 transform hover:shadow-2xl transition-all duration-300">
       <table class="min-w-full">
         <thead class="bg-ctp-surface0/50">
           <tr>
