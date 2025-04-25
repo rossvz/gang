@@ -56,7 +56,8 @@ env:
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal app logs -r job" will tail logs from the first server in the job section.
 #
-# aliases:
+aliases:
+  iex: app exec -q -p -i --reuse "/app/bin/gang remote"
 #   shell: app exec --interactive --reuse "bash"
 
 # Use a different ssh user than root
