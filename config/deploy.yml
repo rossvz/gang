@@ -7,7 +7,6 @@ image: rossvz/gang
 # Deploy to these servers.
 servers:
   web:
-    # - 100.84.47.110
      - 147.93.47.41
   # job:
   #   hosts:
