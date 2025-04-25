@@ -7,7 +7,8 @@ image: rossvz/gang
 # Deploy to these servers.
 servers:
   web:
-    - 100.84.47.110
+    # - 100.84.47.110
+     - 147.93.47.41
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -19,7 +20,7 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: false
-  host: 100.84.47.110
+  host: 147.93.47.41
   # Proxy connects to your container on port 80 by default.
   app_port: 4090
 
