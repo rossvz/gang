@@ -4,6 +4,7 @@
 const plugin = require("tailwindcss/plugin");
 const fs = require("fs");
 const path = require("path");
+const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
   content: ["./js/**/*.js", "../lib/gang_web.ex", "../lib/gang_web/**/*.*ex"],
@@ -38,6 +39,10 @@ module.exports = {
         "ctp-base": "#1e1e2e",
         "ctp-mantle": "#181825",
         "ctp-crust": "#11111b",
+      },
+      fontFamily: {
+        sans: ['Tomorrow', ...defaultTheme.fontFamily.sans],
+        retro: ['"Rubik 80s Fade"', 'cursive'],
       },
       keyframes: {
         "fade-in-out-1": {

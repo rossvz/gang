@@ -8,7 +8,8 @@
       "vscode": {
         "extensions": [
           "JakeBecker.elixir-ls",
-          "samuel-pordeus.elixir-test"
+          "samuel-pordeus.elixir-test",
+          "ritvyk.heex-html"
         ]
       }
     },
