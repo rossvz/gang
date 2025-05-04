@@ -135,6 +135,14 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
+  def handle_event("copy_link", %{"code" => game_code}, socket) do
+    # Generate the path using the ~p sigil for compile-time checks
+    game_path = ~p"/games/#{game_code}"
+    share_url = GangWeb.Endpoint.url() <> game_path
+    {:noreply, push_event(socket, "copy_to_clipboard", %{text: share_url})}
+  end
+
+  @impl true
   def handle_info(:advance_after_evaluation, socket) do
     Games.advance_round(socket.assigns.game_id)
     {:noreply, socket}
@@ -194,8 +202,8 @@ defmodule GangWeb.GameLive do
     ~H"""
     <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-lg shadow-lg shadow-ctp-crust/10 p-6 text-center">
       <h2 class="text-xl font-semibold mb-4 text-ctp-text">Waiting for Players</h2>
-      <p class="mb-4 text-ctp-text">
-        Share this game code with your friends:
+      <p class="mb-4 text-ctp-text flex items-center justify-center space-x-2">
+        <span>Share this game code with your friends:</span>
         <span class="font-bold text-ctp-mauve">{@game.code}</span>
       </p>
       <p class="text-sm text-ctp-subtext0 mb-2">Players joined: {length(@game.players)}/6</p>
@@ -221,7 +229,20 @@ defmodule GangWeb.GameLive do
       >
         Lobby
       </button>
-      <h1 class="text-lg font-bold text-ctp-text">{@game_id}</h1>
+      <div class="flex items-center space-x-2">
+        <h1 class="text-lg font-bold text-ctp-text">{@game_id}</h1>
+        <button
+          id={"share-link-button-#{@game_id}"}
+          phx-hook="Clipboard"
+          phx-click="copy_link"
+          phx-value-code={@game_id}
+          class="p-1 rounded hover:bg-ctp-overlay0 focus:outline-none focus:ring-2 focus:ring-ctp-blue"
+          aria-label="Copy game link"
+          title="Copy game link"
+        >
+          <.icon name="hero-clipboard" class="w-4 h-4 text-ctp-subtext0" />
+        </button>
+      </div>
       <button
         class="px-4 py-2 rounded-lg bg-ctp-mantle/80 backdrop-blur-sm hover:bg-ctp-surface1 text-ctp-text transition-colors"
         phx-click="toggle_hand_guide"
@@ -561,7 +582,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-      
+
     <!-- Game Table Section -->
       <div class="bg-ctp-mantle rounded-lg p-4">
         <div class="flex flex-col items-center">
@@ -581,7 +602,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-      
+
     <!-- Current Player Section -->
       <%= if @player_split.current_player do %>
         <div class={[

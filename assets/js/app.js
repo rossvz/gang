@@ -43,6 +43,31 @@ const Hooks = {
       });
     },
   },
+  Clipboard: {
+    mounted() {
+      this.el.addEventListener("click", e => {
+        const textToCopy = this.el.dataset.clipboardText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          console.log("Copied to clipboard: ", textToCopy);
+          // Optional: Add feedback to the user, like changing the icon or showing a tooltip
+        }).catch(err => {
+          console.error("Failed to copy: ", err);
+        });
+      });
+
+      // Listen for the server event
+      this.handleEvent("copy_to_clipboard", ({text}) => {
+        navigator.clipboard.writeText(text).then(() => {
+          console.log("Copied share link to clipboard: ", text);
+          // Optional: Provide user feedback (e.g., show a temporary message)
+          this.el.focus(); // Briefly focus the button for visual feedback
+          // You might want to add a small temporary text indicator like "Copied!" next to the button
+        }).catch(err => {
+          console.error("Failed to copy share link: ", err);
+        });
+      })
+    }
+  },
 };
 
 let csrfToken = document
