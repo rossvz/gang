@@ -57,7 +57,7 @@ Eg
   round: :preflop,
   vaults: 0,
   alarms: 0,
-  community_cards: [%Card{rank: 2, suite: :spades}, ...],
+  community_cards: [%Card{rank: 2, suit: :spades}, ...],
   unclaimed_rank_chips: [%{
     preflop: [%Rank{color: :white, rank: 2}, ...],
     flop: [%Rank{color: :yellow, rank: 2}],
@@ -71,10 +71,10 @@ Eg
 Completed or abandoned games (where all players have left) will be kept around for a while, and then eventually the process will be stopped.
 
 
-# Persistance
+# Persistence
 
 Games will be (eventually) serialized to DB on a regularly interval or during app restarts.
 
 When the app boots it should find any in-progress games and warm the supervised processes with those games to allow a seamless rejoining experience.
 
-When players create or join a game we'll generate an ID (UUID) and the client will store than in localStorage. (if a user refreshes or disconnects, they should return to the same state they had before)
+When players create or join a game we'll generate an ID (UUID) and the client will store that in localStorage. (if a user refreshes or disconnects, they should return to the same state they had before)
