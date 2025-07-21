@@ -54,10 +54,14 @@ defmodule Gang.Games do
           Game.update_connection(code, existing_player.id, true)
           {:ok, existing_player}
         else
-          Game.add_player(code, player)
-          broadcast_update(code)
+          case Game.add_player(code, player) do
+            {:ok, _updated_state} ->
+              broadcast_update(code)
+              {:ok, GameSupervisor.get_game_pid(code)}
 
-          {:ok, GameSupervisor.get_game_pid(code)}
+            {:error, reason} ->
+              {:error, reason}
+          end
         end
       end
     else

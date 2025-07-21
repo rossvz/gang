@@ -90,16 +90,27 @@ defmodule Gang.Game.State do
   @doc """
   Adds a player to the game.
   Only allowed during the waiting phase.
+  Returns {:ok, updated_state} on success, {:error, reason} on failure.
   """
   def add_player(state, player) do
-    if state.status in [:waiting] do
-      %{
-        state
-        | players: state.players ++ [player],
-          last_active: DateTime.utc_now()
-      }
-    else
-      state
+    cond do
+      state.status not in [:waiting] ->
+        {:error, :game_already_started}
+
+      length(state.players) >= 6 ->
+        {:error, :game_full}
+
+      player_name_exists?(state, player.name) ->
+        {:error, :name_already_taken}
+
+      true ->
+        updated_state = %{
+          state
+          | players: state.players ++ [player],
+            last_active: DateTime.utc_now()
+        }
+
+        {:ok, updated_state}
     end
   end
 
@@ -392,5 +403,14 @@ defmodule Gang.Game.State do
       :river -> :red
       _ -> :white
     end
+  end
+
+  # Checks if a player name already exists in the game (case-insensitive).
+  defp player_name_exists?(state, name) do
+    normalized_name = String.downcase(String.trim(name))
+
+    Enum.any?(state.players, fn player ->
+      String.downcase(String.trim(player.name)) == normalized_name
+    end)
   end
 end

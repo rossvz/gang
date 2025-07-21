@@ -131,10 +131,15 @@ defmodule Gang.Game do
       broadcast_update(updated_state)
       {:reply, {:ok, updated_state}, updated_state}
     else
-      # Add new player
-      updated_state = State.add_player(state, player)
-      broadcast_update(updated_state)
-      {:reply, {:ok, updated_state}, updated_state}
+      # Add new player with validation
+      case State.add_player(state, player) do
+        {:ok, updated_state} ->
+          broadcast_update(updated_state)
+          {:reply, {:ok, updated_state}, updated_state}
+
+        {:error, reason} ->
+          {:reply, {:error, reason}, state}
+      end
     end
   end
 
