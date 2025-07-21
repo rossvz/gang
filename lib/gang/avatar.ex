@@ -4,24 +4,27 @@ defmodule Gang.Avatar do
   The avatar is deterministic based on the provided seed.
   """
 
-  use Bitwise
+  import Bitwise
 
   @doc """
   Generate an avatar as a data URI SVG using the given seed.
   """
-  @spec generate(String.t()) :: String.t()
+  @spec generate(String.t() | nil) :: String.t()
+  def generate(nil), do: generate("default-avatar")
+  
   def generate(seed) when is_binary(seed) do
     hash = :crypto.hash(:sha256, seed)
     color = "#" <> Base.encode16(:binary.part(hash, 0, 3), case: :lower)
 
-    bits =
+    for_result =
       for <<byte <- hash>>, reduce: [] do
         acc ->
           for i <- 0..7, reduce: acc do
-            acc2 -> [(byte >>> i &&& 1) | acc2]
+            acc2 -> [byte >>> i &&& 1 | acc2]
           end
       end
-      |> Enum.reverse()
+
+    bits = Enum.reverse(for_result)
 
     pattern_bits = Enum.slice(bits, 0, 15)
     square = 20
@@ -38,9 +41,9 @@ defmodule Gang.Avatar do
           y = row * square
 
           [
-            ~s(<rect x="#{base_x}" y="#{y}" width="#{square}" height="#{square}" />),
+            ~s(<rect x="#{base_x}" y="#{y}" width="#{square}" height="#{square}"/>),
             if col != 2 do
-              ~s(<rect x="#{mirror_x}" y="#{y}" width="#{square}" height="#{square}" />)
+              ~s(<rect x="#{mirror_x}" y="#{y}" width="#{square}" height="#{square}"/>)
             end
           ]
         else
@@ -51,12 +54,13 @@ defmodule Gang.Avatar do
       |> Enum.join()
 
     svg = """
-    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 #{square * 5} #{square * 5}' shape-rendering='crispEdges'>
-      <rect width='100%' height='100%' fill='white'/>
-      <g fill='#{color}'>#{rects}</g>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 #{square * 5} #{square * 5}" shape-rendering="crispEdges">
+      <rect width="100%" height="100%" fill="white"/>
+      <g fill="#{color}">#{rects}</g>
     </svg>
     """
 
-    "data:image/svg+xml;utf8," <> URI.encode(svg)
+    # Properly encode the SVG for data URI - use base64 for better compatibility
+    "data:image/svg+xml;base64," <> Base.encode64(svg)
   end
 end
