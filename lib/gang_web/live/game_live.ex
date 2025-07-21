@@ -154,7 +154,16 @@ defmodule GangWeb.GameLive do
         {:noreply, socket}
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to join game: #{reason}")}
+        error_message =
+          case reason do
+            :game_full -> "This game is full (maximum 6 players)"
+            :name_already_taken -> "This name is already taken by another player"
+            :game_already_started -> "This game has already started"
+            :game_not_found -> "Game not found"
+            _ -> "Failed to join game: #{reason}"
+          end
+
+        {:noreply, put_flash(socket, :error, error_message)}
     end
   end
 

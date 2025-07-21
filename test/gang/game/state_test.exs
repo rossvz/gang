@@ -26,7 +26,7 @@ defmodule Gang.Game.StateTest do
       state = State.new("TEST")
       player = Player.new("Alice")
 
-      updated_state = State.add_player(state, player)
+      assert {:ok, updated_state} = State.add_player(state, player)
 
       assert length(updated_state.players) == 1
       assert hd(updated_state.players).name == "Alice"
@@ -37,8 +37,8 @@ defmodule Gang.Game.StateTest do
       player1 = Player.new("Alice")
       player2 = Player.new("Bob")
 
-      state = State.add_player(state, player1)
-      state = State.add_player(state, player2)
+      assert {:ok, state} = State.add_player(state, player1)
+      assert {:ok, state} = State.add_player(state, player2)
 
       assert length(state.players) == 2
       assert Enum.at(state.players, 0).name == "Alice"
@@ -49,9 +49,45 @@ defmodule Gang.Game.StateTest do
       state = %State{status: :playing}
       player = Player.new("Alice")
 
-      updated_state = State.add_player(state, player)
+      assert {:error, :game_already_started} = State.add_player(state, player)
+    end
 
-      assert updated_state.players == []
+    test "doesn't add more than 6 players" do
+      state = State.new("TEST")
+      players = for i <- 1..6, do: Player.new("Player #{i}")
+
+      # Add 6 players successfully
+      state =
+        Enum.reduce(players, state, fn player, acc ->
+          {:ok, new_state} = State.add_player(acc, player)
+          new_state
+        end)
+
+      # 7th player should be rejected
+      player7 = Player.new("Player 7")
+      assert {:error, :game_full} = State.add_player(state, player7)
+    end
+
+    test "doesn't allow duplicate player names" do
+      state = State.new("TEST")
+      player1 = Player.new("Alice")
+      # Different case
+      player2 = Player.new("alice")
+      # Same case
+      player3 = Player.new("Alice")
+
+      assert {:ok, state} = State.add_player(state, player1)
+      assert {:error, :name_already_taken} = State.add_player(state, player2)
+      assert {:error, :name_already_taken} = State.add_player(state, player3)
+    end
+
+    test "trims whitespace when checking for duplicate names" do
+      state = State.new("TEST")
+      player1 = Player.new("Alice")
+      player2 = Player.new("  Alice  ")
+
+      assert {:ok, state} = State.add_player(state, player1)
+      assert {:error, :name_already_taken} = State.add_player(state, player2)
     end
   end
 
@@ -60,7 +96,7 @@ defmodule Gang.Game.StateTest do
       state = State.new("TEST")
       player1 = Player.new("Alice")
 
-      state = State.add_player(state, player1)
+      {:ok, state} = State.add_player(state, player1)
       updated_state = State.remove_player(state, player1.id)
 
       assert updated_state.players == []
@@ -72,11 +108,9 @@ defmodule Gang.Game.StateTest do
       player2 = Player.new("Bob")
       player3 = Player.new("Charlie")
 
-      state =
-        state
-        |> State.add_player(player1)
-        |> State.add_player(player2)
-        |> State.add_player(player3)
+      {:ok, state} = State.add_player(state, player1)
+      {:ok, state} = State.add_player(state, player2)
+      {:ok, state} = State.add_player(state, player3)
 
       updated_state = State.remove_player(state, player2.id)
 
@@ -89,7 +123,7 @@ defmodule Gang.Game.StateTest do
     test "updates a player's connection status to connected" do
       state = State.new("TEST")
       player = Player.new("Alice")
-      state = State.add_player(state, player)
+      {:ok, state} = State.add_player(state, player)
 
       updated_state = State.update_player_connection(state, player.id, true)
       updated_player = Enum.find(updated_state.players, &(&1.name == "Alice"))
@@ -100,7 +134,7 @@ defmodule Gang.Game.StateTest do
     test "updates a player's connection status to disconnected" do
       state = State.new("TEST")
       player = Player.new("Alice")
-      state = State.add_player(state, %{player | connected: true})
+      {:ok, state} = State.add_player(state, %{player | connected: true})
 
       assert length(state.players) == 1
 
@@ -118,11 +152,9 @@ defmodule Gang.Game.StateTest do
       player2 = Player.new("Bob")
       player3 = Player.new("Charlie")
 
-      state =
-        state
-        |> State.add_player(player1)
-        |> State.add_player(player2)
-        |> State.add_player(player3)
+      {:ok, state} = State.add_player(state, player1)
+      {:ok, state} = State.add_player(state, player2)
+      {:ok, state} = State.add_player(state, player3)
 
       updated_state = State.start_game(state)
 
@@ -150,7 +182,8 @@ defmodule Gang.Game.StateTest do
       state = State.new("TEST")
       player1 = Player.new("Alice")
       player2 = Player.new("Bob")
-      state = state |> State.add_player(player1) |> State.add_player(player2)
+      {:ok, state} = State.add_player(state, player1)
+      {:ok, state} = State.add_player(state, player2)
 
       updated_state = State.start_game(state)
 
