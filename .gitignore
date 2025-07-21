@@ -38,3 +38,4 @@ npm-debug.log
 .envrc
 .aider*
 
+.claude/**/*.md
