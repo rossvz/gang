@@ -5,10 +5,12 @@ defmodule Gang.Game.Player do
 
   alias Gang.Game.Card
   alias Gang.Game.RankChip
+  alias Gang.Avatar
 
   @type t :: %__MODULE__{
           id: String.t(),
           name: String.t(),
+          avatar: String.t() | nil,
           cards: list(Card.t()),
           rank_chips: list(RankChip.t()),
           connected: boolean(),
@@ -18,6 +20,7 @@ defmodule Gang.Game.Player do
   defstruct [
     :id,
     :name,
+    :avatar,
     cards: [],
     rank_chips: [],
     connected: true,
@@ -31,6 +34,7 @@ defmodule Gang.Game.Player do
     %__MODULE__{
       id: id,
       name: name,
+      avatar: Avatar.generate(id),
       last_activity: DateTime.utc_now()
     }
   end

@@ -256,7 +256,8 @@ defmodule GangWeb.GameLive do
           <h3 class="text-sm font-medium text-ctp-subtext0 mb-2">Current Players:</h3>
           <div class="flex flex-wrap justify-center gap-2">
             <%= for player <- @game.players do %>
-              <span class="px-2 py-1 bg-ctp-surface0 text-ctp-text rounded text-sm">
+              <span class="px-2 py-1 bg-ctp-surface0 text-ctp-text rounded text-sm flex items-center gap-1">
+                <img src={player.avatar} alt="avatar" class="w-4 h-4 rounded" />
                 {player.name}
               </span>
             <% end %>
