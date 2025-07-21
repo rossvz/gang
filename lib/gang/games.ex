@@ -147,14 +147,15 @@ defmodule Gang.Games do
     if GameSupervisor.game_exists?(code) do
       case get_game(code) do
         {:ok, state} ->
-          player = Enum.find(state.players, &(&1.id == player_id))
-          chip = Enum.find(player.rank_chips, &(&1.color == state.current_round_color))
-          result = Game.return_chip(code, player_id, chip.rank, chip.color)
-          broadcast_update(code)
-          result
-
-        nil ->
-          {:error, :chip_not_found}
+          with %{} = player <- Enum.find(state.players, &(&1.id == player_id)),
+               %{} = chip <-
+                 Enum.find(player.rank_chips, &(&1.color == state.current_round_color)) do
+            result = Game.return_chip(code, player_id, chip.rank, chip.color)
+            broadcast_update(code)
+            result
+          else
+            nil -> {:error, :chip_not_found}
+          end
 
         error ->
           error
