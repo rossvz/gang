@@ -3,9 +3,9 @@ defmodule Gang.Game.Player do
   Represents a player in the game with their cards and claimed rank chips.
   """
 
+  alias Gang.Avatar
   alias Gang.Game.Card
   alias Gang.Game.RankChip
-  alias Gang.Avatar
 
   @type t :: %__MODULE__{
           id: String.t(),

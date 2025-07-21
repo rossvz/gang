@@ -1,8 +1,8 @@
 defmodule Gang.GamesTest do
   use ExUnit.Case, async: true
 
-  alias Gang.Games
   alias Gang.Game.Player
+  alias Gang.Games
 
   test "return_rank_chip/2 returns error when player has no chip" do
     {:ok, code} = Games.create_game()

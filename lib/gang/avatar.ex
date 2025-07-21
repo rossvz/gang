@@ -11,7 +11,7 @@ defmodule Gang.Avatar do
   """
   @spec generate(String.t() | nil) :: String.t()
   def generate(nil), do: generate("default-avatar")
-  
+
   def generate(seed) when is_binary(seed) do
     hash = :crypto.hash(:sha256, seed)
     color = "#" <> Base.encode16(:binary.part(hash, 0, 3), case: :lower)

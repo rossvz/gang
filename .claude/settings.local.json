@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(mix test)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(asdf:*)",
+      "Bash(mix hex.outdated:*)",
+      "Bash(mix local.hex:*)",
+      "Bash(mix local.rebar:*)",
+      "Bash(mix deps.get:*)",
+      "Bash(mix compile)",
+      "Bash(mix deps.update:*)",
+      "Bash(mix deps.clean:*)"
+    ],
+    "deny": []
+  }
+}

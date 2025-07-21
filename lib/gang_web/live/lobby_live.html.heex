@@ -123,7 +123,11 @@
                     <div class="flex items-center gap-1 md:gap-2">
                       <span :if={length(players) > 0} class="flex -space-x-1 md:-space-x-2">
                         <%= for player <- players do %>
-                          <img src={player.avatar} alt="avatar" class="w-4 md:w-6 h-4 md:h-6 rounded-full border-2 border-ctp-surface0" />
+                          <img
+                            src={player.avatar}
+                            alt="avatar"
+                            class="w-4 md:w-6 h-4 md:h-6 rounded-full border-2 border-ctp-surface0"
+                          />
                         <% end %>
                       </span>
                       <span class="text-xs md:text-sm">{length(players)} / 6</span>
