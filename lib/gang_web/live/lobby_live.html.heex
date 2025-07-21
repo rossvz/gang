@@ -156,18 +156,14 @@
                       <% is_player_in_game = Enum.any?(players, &(&1.id == @player.id)) %>
                       <.link
                         :if={is_player_in_game}
-                        navigate={
-                          ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
-                        }
+                        navigate={~p"/games/#{game_id}"}
                         class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300 text-xs md:text-sm"
                       >
                         Rejoin <span class="text-base md:text-lg">🔄</span>
                       </.link>
                       <.link
                         :if={status == :waiting && !is_player_in_game}
-                        navigate={
-                          ~p"/games/#{game_id}?player_name=#{@player.name}&player_id=#{@player.id}"
-                        }
+                        navigate={~p"/games/#{game_id}"}
                         class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-green/10 text-ctp-green hover:bg-ctp-green/20 transition-colors duration-300 text-xs md:text-sm"
                       >
                         Join <span class="text-base md:text-lg">▶</span>

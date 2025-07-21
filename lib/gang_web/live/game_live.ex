@@ -6,6 +6,7 @@ defmodule GangWeb.GameLive do
   alias Gang.Game.Player
   alias Gang.Games
   alias GangWeb.CardComponents
+  alias GangWeb.UserInfo
 
   on_mount {GangWeb.ParamHandlers, :extract_query_params}
 
@@ -16,14 +17,15 @@ defmodule GangWeb.GameLive do
         }
 
   @impl true
-  def mount(%{"id" => game_id} = params, _session, socket) do
-    player_name = params["player_name"] || socket.assigns.player_name
-    player_id = params["player_id"] || socket.assigns.player_id
+  def mount(%{"id" => game_id} = params, session, socket) do
+    # Extract user info from connect params, session, or URL params (in that order)
+    {player_name, player_id} = UserInfo.extract_user_info(params, session, socket)
 
     # Check if we have valid player info
-    has_player_info = player_name && player_id && player_name != "" && player_id != ""
+    has_player_info = UserInfo.has_valid_user_info?(player_name, player_id)
 
-    player = if has_player_info, do: Player.new(player_name, player_id)
+    # Create player if we have valid info
+    player = if has_player_info, do: UserInfo.create_player(player_name, player_id)
 
     if connected?(socket) do
       Games.subscribe(game_id)
@@ -40,7 +42,7 @@ defmodule GangWeb.GameLive do
         socket =
           socket
           |> assign(game_id: game_id)
-          |> assign(player_name: player_name)
+          |> assign(player_name: player_name || "")
           |> assign(player_id: player_id)
           |> assign(game: game)
           |> assign(player: player)
@@ -48,6 +50,7 @@ defmodule GangWeb.GameLive do
           |> assign(player_split: player_split)
           |> assign(show_hand_guide: false)
           |> assign(needs_player_info: !has_player_info)
+          |> UserInfo.store_in_socket(player_name, player_id)
 
         {:ok, socket}
 
@@ -144,12 +147,9 @@ defmodule GangWeb.GameLive do
 
         socket =
           socket
-          |> assign(player_name: player_name)
-          |> assign(player_id: player_id)
-          |> assign(player: player)
           |> assign(player_split: player_split)
           |> assign(needs_player_info: false)
-          |> push_event("save_player_info", %{player_name: player_name, player_id: player_id})
+          |> UserInfo.update_user_info(player_name, player_id)
 
         {:noreply, socket}
 

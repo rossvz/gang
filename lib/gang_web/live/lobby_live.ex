@@ -4,55 +4,50 @@ defmodule GangWeb.LobbyLive do
 
   alias Gang.Game.Player
   alias Gang.Games
+  alias GangWeb.UserInfo
 
   @impl true
-  def mount(params, _session, socket) do
+  def mount(params, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Gang.PubSub, "games")
     end
 
-    player_name = Map.get(params, "player_name", "")
-    player_id = Map.get(params, "player_id")
+    # Extract user info from connect params, session, or URL params (in that order)
+    {player_name, player_id} = UserInfo.extract_user_info(params, session, socket)
 
-    player = Player.new(player_name, player_id)
+    # Create player if we have valid info, otherwise create empty player
+    player = UserInfo.create_player(player_name, player_id) || Player.new("", nil)
 
     socket =
-      assign(socket,
+      socket
+      |> assign(
         games: list_games(),
         game_code: "",
-        player_name: player_name,
+        player_name: player_name || "",
         player_id: player_id,
         show_error: false,
         error_message: "",
         player: player
       )
+      |> UserInfo.store_in_socket(player_name, player_id)
 
     {:ok, socket}
   end
 
   @impl true
   def handle_event("join_game", %{"game_code" => game_code}, socket) do
-    player = socket.assigns.player
-    {:ok, _pid} = Games.join_game(game_code, player)
+    {:ok, _pid} = Games.join_game(game_code, socket.assigns.player)
 
-    {:noreply,
-     push_navigate(socket,
-       to: ~p"/games/#{game_code}?player_name=#{player.name}&player_id=#{player.id}"
-     )}
+    {:noreply, push_navigate(socket, to: ~p"/games/#{game_code}")}
   end
 
   @impl true
   def handle_event("create_game", _params, socket) do
-    player = socket.assigns.player
-
     case Games.create_game() do
       {:ok, game_code} ->
         Games.broadcast_game_created(game_code)
 
-        {:noreply,
-         push_navigate(socket,
-           to: ~p"/games/#{game_code}?player_name=#{player.name}&player_id=#{player.id}"
-         )}
+        {:noreply, push_navigate(socket, to: ~p"/games/#{game_code}")}
 
       {:error, reason} ->
         {:noreply,
@@ -78,12 +73,7 @@ defmodule GangWeb.LobbyLive do
         id -> id
       end
 
-    updated_player = Player.new(player_name, final_player_id)
-
-    {:noreply,
-     socket
-     |> assign(player: updated_player)
-     |> push_event("save_player_info", %{player_name: player_name, player_id: final_player_id})}
+    {:noreply, UserInfo.update_user_info(socket, player_name, final_player_id)}
   end
 
   def handle_event("restore_player_info", %{"player_name" => player_name, "player_id" => player_id}, socket) do

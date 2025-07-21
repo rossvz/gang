@@ -74,15 +74,15 @@ let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
-const currentPlayerName = localStorage.getItem("player_name") || "";
-const currentPlayerId = localStorage.getItem("player_id");
-
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {
-    _csrf_token: csrfToken,
-    player_name: currentPlayerName,
-    player_id: currentPlayerId,
+  params: () => {
+    // Send current localStorage data on every connection/reconnection
+    return {
+      _csrf_token: csrfToken,
+      player_name: localStorage.getItem("player_name") || "",
+      player_id: localStorage.getItem("player_id") || "",
+    };
   },
   hooks: Hooks,
 });
