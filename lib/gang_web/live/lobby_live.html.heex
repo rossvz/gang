@@ -122,10 +122,8 @@
                   <td class="px-2 md:px-6 py-4 whitespace-nowrap text-ctp-subtext0">
                     <div class="flex items-center gap-1 md:gap-2">
                       <span :if={length(players) > 0} class="flex -space-x-1 md:-space-x-2">
-                        <%= for _ <- 1..length(players) do %>
-                          <span class="w-4 md:w-6 h-4 md:h-6 rounded-full bg-ctp-overlay0/30 border-2 border-ctp-surface0 flex items-center justify-center text-[10px] md:text-xs">
-                            👤
-                          </span>
+                        <%= for player <- players do %>
+                          <img src={player.avatar} alt="avatar" class="w-4 md:w-6 h-4 md:h-6 rounded-full border-2 border-ctp-surface0" />
                         <% end %>
                       </span>
                       <span class="text-xs md:text-sm">{length(players)} / 6</span>
