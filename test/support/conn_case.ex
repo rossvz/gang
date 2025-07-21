@@ -20,6 +20,7 @@ defmodule GangWeb.ConnCase do
   using do
     quote do
       use GangWeb, :verified_routes
+
       import GangWeb.ConnCase
       import Phoenix.ConnTest
       import Plug.Conn

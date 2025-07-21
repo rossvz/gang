@@ -1,4 +1,5 @@
 defmodule GangWeb.CardComponents do
+  @moduledoc false
   use GangWeb, :html
 
   alias Gang.Game.Card
@@ -9,36 +10,34 @@ defmodule GangWeb.CardComponents do
 
   def card(assigns) do
     ~H"""
-    <div class={
-      [
-        "group rounded-xl flex flex-col flex-shrink-0 items-center justify-between font-bold relative cursor-default",
-        "transform transition-all duration-300 hover:scale-105 hover:-translate-y-1",
-        "shadow-lg hover:shadow-xl border-2",
-        case @size do
-          "extra_small" -> "w-12 h-18 text-sm"
-          "small" -> "w-14 h-20 p-2 text-sm"
-          "normal" -> "w-[4.5rem] h-[6.5rem] p-2"
-          "large" -> "w-20 h-28 p-3"
-        end,
-        if @revealed do
-          case @card.suit do
-            :hearts ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+    <div class={[
+      "group rounded-xl flex flex-col flex-shrink-0 items-center justify-between font-bold relative cursor-default",
+      "transform transition-all duration-300 hover:scale-105 hover:-translate-y-1",
+      "shadow-lg hover:shadow-xl border-2",
+      case @size do
+        "extra_small" -> "w-12 h-18 text-sm"
+        "small" -> "w-14 h-20 p-2 text-sm"
+        "normal" -> "w-[4.5rem] h-[6.5rem] p-2"
+        "large" -> "w-20 h-28 p-3"
+      end,
+      if @revealed do
+        case @card.suit do
+          :hearts ->
+            "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
 
-            :diamonds ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
+          :diamonds ->
+            "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-red border-ctp-red/20"
 
-            :clubs ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
+          :clubs ->
+            "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
 
-            :spades ->
-              "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
-          end
-        else
-          "bg-gradient-to-br from-ctp-surface0 to-ctp-mantle border-ctp-overlay0/20"
+          :spades ->
+            "bg-gradient-to-br from-ctp-base to-ctp-mantle text-ctp-text border-ctp-text/20"
         end
-      ]
-    }>
+      else
+        "bg-gradient-to-br from-ctp-surface0 to-ctp-mantle border-ctp-overlay0/20"
+      end
+    ]}>
       <%= if @revealed do %>
         <!-- Top rank -->
         <div class={[
@@ -57,7 +56,7 @@ defmodule GangWeb.CardComponents do
             n -> "#{n}"
           end}
         </div>
-
+        
     <!-- Center suit with glow effect -->
         <div class={[
           "transform transition-all duration-300 group-hover:scale-110",
@@ -79,7 +78,7 @@ defmodule GangWeb.CardComponents do
             :spades -> "♠"
           end}
         </div>
-
+        
     <!-- Bottom rank (inverted) -->
         <div class={[
           "self-end font-extrabold tracking-tight rotate-180",
@@ -97,7 +96,7 @@ defmodule GangWeb.CardComponents do
             n -> "#{n}"
           end}
         </div>
-
+        
     <!-- Subtle shine effect -->
         <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         </div>

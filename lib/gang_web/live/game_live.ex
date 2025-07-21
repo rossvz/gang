@@ -20,11 +20,17 @@ defmodule GangWeb.GameLive do
     player_name = params["player_name"] || socket.assigns.player_name
     player_id = params["player_id"] || socket.assigns.player_id
 
-    player = Player.new(player_name, player_id)
+    # Check if we have valid player info
+    has_player_info = player_name && player_id && player_name != "" && player_id != ""
+
+    player = if has_player_info, do: Player.new(player_name, player_id)
 
     if connected?(socket) do
       Games.subscribe(game_id)
-      Games.join_game(game_id, player)
+
+      if has_player_info do
+        Games.join_game(game_id, player)
+      end
     end
 
     case Games.get_game(game_id) do
@@ -41,6 +47,7 @@ defmodule GangWeb.GameLive do
           |> assign(selected_rank_chip: nil)
           |> assign(player_split: player_split)
           |> assign(show_hand_guide: false)
+          |> assign(needs_player_info: !has_player_info)
 
         {:ok, socket}
 
@@ -119,8 +126,36 @@ defmodule GangWeb.GameLive do
   end
 
   def handle_event("back_to_lobby", _params, socket) do
-    Games.leave_game(socket.assigns.game_id, socket.assigns.player_id)
+    if socket.assigns.player_id do
+      Games.leave_game(socket.assigns.game_id, socket.assigns.player_id)
+    end
+
     {:noreply, push_navigate(socket, to: ~p"/")}
+  end
+
+  def handle_event("join_game_with_name", %{"player_name" => player_name}, socket) do
+    player_id = Ecto.UUID.generate()
+    player = Player.new(player_name, player_id)
+
+    case Games.join_game(socket.assigns.game_id, player) do
+      {:ok, _} ->
+        # Update socket with player info
+        player_split = split_players(socket.assigns.game.players, player_id)
+
+        socket =
+          socket
+          |> assign(player_name: player_name)
+          |> assign(player_id: player_id)
+          |> assign(player: player)
+          |> assign(player_split: player_split)
+          |> assign(needs_player_info: false)
+          |> push_event("save_player_info", %{player_name: player_name, player_id: player_id})
+
+        {:noreply, socket}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to join game: #{reason}")}
+    end
   end
 
   @impl true
@@ -214,6 +249,20 @@ defmodule GangWeb.GameLive do
           Ready to start the game!
         <% end %>
       </p>
+      
+    <!-- Show current players -->
+      <%= if length(@game.players) > 0 do %>
+        <div class="mt-4">
+          <h3 class="text-sm font-medium text-ctp-subtext0 mb-2">Current Players:</h3>
+          <div class="flex flex-wrap justify-center gap-2">
+            <%= for player <- @game.players do %>
+              <span class="px-2 py-1 bg-ctp-surface0 text-ctp-text rounded text-sm">
+                {player.name}
+              </span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
     """
   end
@@ -264,12 +313,25 @@ defmodule GangWeb.GameLive do
       </button>
     </div>
 
-    <%= if !@player do %>
-      <div
-        class="bg-ctp-yellow/20 backdrop-blur-sm border-l-4 border-ctp-yellow text-ctp-yellow p-4 mb-8 rounded-r-lg"
-        role="alert"
-      >
-        <p>You are observing this game</p>
+    <%= if @needs_player_info do %>
+      <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-lg shadow-lg shadow-ctp-crust/10 p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-ctp-text">Join Game</h2>
+        <p class="mb-4 text-ctp-subtext0">Enter your name to join this game:</p>
+        <form phx-submit="join_game_with_name" class="flex gap-2">
+          <input
+            type="text"
+            name="player_name"
+            placeholder="Your name"
+            required
+            class="flex-1 px-3 py-2 bg-ctp-surface0 border border-ctp-overlay0 rounded-md text-ctp-text placeholder-ctp-subtext0 focus:outline-none focus:ring-2 focus:ring-ctp-blue"
+          />
+          <button
+            type="submit"
+            class="px-4 py-2 bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium rounded-md transition-colors"
+          >
+            Join Game
+          </button>
+        </form>
       </div>
     <% end %>
 
@@ -582,7 +644,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-
+      
     <!-- Game Table Section -->
       <div class="bg-ctp-mantle rounded-lg p-4">
         <div class="flex flex-col items-center">
@@ -602,7 +664,7 @@ defmodule GangWeb.GameLive do
           <% end %>
         </div>
       </div>
-
+      
     <!-- Current Player Section -->
       <%= if @player_split.current_player do %>
         <div class={[

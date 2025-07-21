@@ -1,5 +1,10 @@
 <div class="max-w-7xl mx-auto px-4 py-8 text-ctp-text min-h-screen">
-  <.game_header game_id={@game_id} player={@player} show_hand_guide={@show_hand_guide} />
+  <.game_header
+    game_id={@game_id}
+    player={@player}
+    show_hand_guide={@show_hand_guide}
+    needs_player_info={@needs_player_info}
+  />
   <.game_status game={@game} player={@player} />
 
   <%= if @game.status == :playing do %>
@@ -25,4 +30,4 @@
   <% else %>
     <.waiting_room game={@game} />
   <% end %>
-</div> 
+</div>
