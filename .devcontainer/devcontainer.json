@@ -9,7 +9,8 @@
         "extensions": [
           "JakeBecker.elixir-ls",
           "samuel-pordeus.elixir-test",
-          "ritvyk.heex-html"
+          "ritvyk.heex-html",
+          "vscodevim.vim"
         ]
       }
     },
