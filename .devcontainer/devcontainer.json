@@ -14,5 +14,5 @@
         ]
       }
     },
-    "postAttachCommand": "mix setup && mix phx.server"
+    "postAttachCommand": "bash -c 'eval \"$(mise activate bash)\" && mix setup && mix phx.server'"
   }
