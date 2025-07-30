@@ -114,7 +114,7 @@
                 </td>
               </tr>
             <% else %>
-              <%= for %{status: status, players: players, code: game_id} <- @games do %>
+              <%= for %{status: status, players: players, code: game_id, owner_id: owner_id} <- @games do %>
                 <tr class="hover:bg-ctp-surface0/30 transition-colors duration-300">
                   <td class="px-2 md:px-6 py-4 whitespace-nowrap text-ctp-text font-medium">
                     {game_id}
@@ -156,26 +156,39 @@
                   <td class="px-2 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <%= if @player.name != "" do %>
                       <% is_player_in_game = Enum.any?(players, &(&1.id == @player.id)) %>
-                      <.link
-                        :if={is_player_in_game}
-                        navigate={~p"/games/#{game_id}"}
-                        class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300 text-xs md:text-sm"
-                      >
-                        Rejoin <span class="text-base md:text-lg">🔄</span>
-                      </.link>
-                      <.link
-                        :if={status == :waiting && !is_player_in_game}
-                        navigate={~p"/games/#{game_id}"}
-                        class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-green/10 text-ctp-green hover:bg-ctp-green/20 transition-colors duration-300 text-xs md:text-sm"
-                      >
-                        Join <span class="text-base md:text-lg">▶</span>
-                      </.link>
-                      <span
-                        :if={status == :playing && !is_player_in_game}
-                        class="text-ctp-overlay0 text-xs"
-                      >
-                        In Progress
-                      </span>
+                      <% is_owner = owner_id == @player.id %>
+                      <div class="flex gap-2 justify-end">
+                        <.link
+                          :if={is_player_in_game}
+                          navigate={~p"/games/#{game_id}"}
+                          class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300 text-xs md:text-sm"
+                        >
+                          Rejoin <span class="text-base md:text-lg">🔄</span>
+                        </.link>
+                        <.link
+                          :if={status == :waiting && !is_player_in_game}
+                          navigate={~p"/games/#{game_id}"}
+                          class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-green/10 text-ctp-green hover:bg-ctp-green/20 transition-colors duration-300 text-xs md:text-sm"
+                        >
+                          Join <span class="text-base md:text-lg">▶</span>
+                        </.link>
+                        <span
+                          :if={status == :playing && !is_player_in_game}
+                          class="text-ctp-overlay0 text-xs"
+                        >
+                          In Progress
+                        </span>
+                        <button
+                          :if={is_owner}
+                          phx-click="close_game"
+                          phx-value-game_code={game_id}
+                          data-confirm="Are you sure you want to close this game? This action cannot be undone."
+                          class="w-16 md:w-20 inline-flex justify-center items-center gap-1 px-2 md:px-3 py-2 rounded-lg bg-ctp-red/10 text-ctp-red hover:bg-ctp-red/20 transition-colors duration-300 text-xs md:text-sm"
+                          title="Close Game (Owner Only)"
+                        >
+                          Close <span class="text-base md:text-lg">✕</span>
+                        </button>
+                      </div>
                     <% else %>
                       <span class="text-ctp-overlay0 text-xs">Enter Name</span>
                     <% end %>

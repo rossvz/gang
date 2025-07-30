@@ -11,6 +11,7 @@ defmodule Gang.Game.StateTest do
       state = State.new("TEST")
 
       assert state.code == "TEST"
+      assert state.owner_id == nil
       assert state.players == []
       assert state.status == :waiting
       assert state.current_round == :preflop
@@ -18,6 +19,27 @@ defmodule Gang.Game.StateTest do
       assert state.alarms == 0
       assert state.community_cards == [nil, nil, nil, nil, nil]
       assert state.all_rank_chips_claimed? == false
+    end
+  end
+
+  describe "new/2" do
+    test "creates a new state with a game code and owner_id" do
+      owner_id = "test-owner-123"
+      state = State.new("TEST", owner_id)
+
+      assert state.code == "TEST"
+      assert state.owner_id == owner_id
+      assert state.players == []
+      assert state.status == :waiting
+    end
+
+    test "creates a new state with nil owner_id when explicitly passed" do
+      state = State.new("TEST", nil)
+
+      assert state.code == "TEST"
+      assert state.owner_id == nil
+      assert state.players == []
+      assert state.status == :waiting
     end
   end
 
