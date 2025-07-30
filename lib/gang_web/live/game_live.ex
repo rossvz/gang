@@ -183,6 +183,44 @@ defmodule GangWeb.GameLive do
     {:noreply, push_event(socket, "copy_to_clipboard", %{text: share_url})}
   end
 
+  # Development helper - only works in dev environment
+  @impl true
+  def handle_event("dev_increment_counter", %{"type" => type}, socket) do
+    if Mix.env() == :dev do
+      current_game = socket.assigns.game
+      
+      updated_game = case type do
+        "alarm" ->
+          new_alarms = current_game.alarms + 1
+          %{current_game | 
+            alarms: new_alarms,
+            last_round_result: :alarm,
+            status: if(new_alarms >= 3, do: :completed, else: current_game.status),
+            current_round: if(new_alarms >= 3, do: :evaluation, else: current_game.current_round),
+            evaluated_hands: if(new_alarms >= 3, do: %{"dev" => {:pair, []}}, else: current_game.evaluated_hands)
+          }
+        
+        "vault" ->
+          new_vaults = current_game.vaults + 1
+          %{current_game | 
+            vaults: new_vaults,
+            last_round_result: :vault,
+            status: if(new_vaults >= 3, do: :completed, else: current_game.status),
+            current_round: if(new_vaults >= 3, do: :evaluation, else: current_game.current_round),
+            evaluated_hands: if(new_vaults >= 3, do: %{"dev" => {:pair, []}}, else: current_game.evaluated_hands)
+          }
+      end
+      
+      {:noreply, assign(socket, :game, updated_game)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("dev_increment_counter", _params, socket) do
+    {:noreply, socket}
+  end
+
   @impl true
   def handle_info(:advance_after_evaluation, socket) do
     Games.advance_round(socket.assigns.game_id)
@@ -299,25 +337,48 @@ defmodule GangWeb.GameLive do
           <.icon name="hero-clipboard" class="w-4 h-4 text-ctp-subtext0" />
         </button>
       </div>
-      <button
-        class="px-4 py-2 rounded-lg bg-ctp-mantle/80 backdrop-blur-sm hover:bg-ctp-surface1 text-ctp-text transition-colors"
-        phx-click="toggle_hand_guide"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      <div class="flex gap-2">
+        <button
+          class="px-4 py-2 rounded-lg bg-ctp-mantle/80 backdrop-blur-sm hover:bg-ctp-surface1 text-ctp-text transition-colors"
+          phx-click="toggle_hand_guide"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </button>
+
+        <%= if Mix.env() == :dev do %>
+          <div class="flex gap-1">
+            <button
+              class="px-2 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white"
+              phx-click="dev_increment_counter"
+              phx-value-type="alarm"
+              title="DEV: Add Alarm (auto-completes at 3)"
+            >
+              🚨 Alarm
+            </button>
+            <button
+              class="px-2 py-1 text-xs rounded bg-green-600 hover:bg-green-700 text-white"
+              phx-click="dev_increment_counter"
+              phx-value-type="vault"
+              title="DEV: Add Vault (auto-completes at 3)"
+            >
+              🏦 Vault
+            </button>
+          </div>
+        <% end %>
+      </div>
     </div>
 
     <%= if @needs_player_info do %>
