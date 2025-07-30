@@ -56,6 +56,7 @@ defmodule Gang.Game.State do
           game_created: DateTime.t() | nil,
           last_active: DateTime.t(),
           evaluated_hands: map() | nil,
+          expected_rankings: map() | nil,
           last_round_result: round_result() | nil
         }
 
@@ -75,7 +76,8 @@ defmodule Gang.Game.State do
     deck: [],
     game_created: DateTime.utc_now(),
     last_active: DateTime.utc_now(),
-    evaluated_hands: nil
+    evaluated_hands: nil,
+    expected_rankings: nil
   ]
 
   @doc """
@@ -160,7 +162,7 @@ defmodule Gang.Game.State do
         state
 
       state.current_round == :river ->
-        %{round_result: round_result, player_hands: player_hands} =
+        %{round_result: round_result, player_hands: player_hands, expected_rankings: expected_rankings} =
           Evaluator.evaluate_round(state)
 
         state =
@@ -168,7 +170,7 @@ defmodule Gang.Game.State do
           |> set_alarm_or_vault(round_result)
           |> set_status()
 
-        %{state | evaluated_hands: player_hands, current_round: :evaluation}
+        %{state | evaluated_hands: player_hands, expected_rankings: expected_rankings, current_round: :evaluation}
 
       state.current_round == :evaluation ->
         start_new_hand(state)
@@ -211,6 +213,7 @@ defmodule Gang.Game.State do
             deck: remaining_deck,
             current_phase: :rank_chip_selection,
             evaluated_hands: nil,
+            expected_rankings: nil,
             last_active: DateTime.utc_now()
         }
     end
@@ -249,6 +252,7 @@ defmodule Gang.Game.State do
           community_cards: [nil, nil, nil, nil, nil],
           all_rank_chips_claimed?: false,
           evaluated_hands: nil,
+          expected_rankings: nil,
           last_active: DateTime.utc_now()
       }
     else
@@ -344,6 +348,7 @@ defmodule Gang.Game.State do
           deck: [],
           players: reset_players,
           evaluated_hands: nil,
+          expected_rankings: nil,
           last_active: DateTime.utc_now()
       }
     else
