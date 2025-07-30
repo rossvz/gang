@@ -186,7 +186,7 @@ defmodule GangWeb.GameLive do
   # Development helper - only works in dev and test environments
   @impl true
   def handle_event("dev_increment_counter", %{"type" => type}, socket) do
-    if Mix.env() in [:dev, :test] do
+    if Application.get_env(:gang, :enable_dev_tools, false) do
       game_code = socket.assigns.game_id
       game_pid = Gang.Game.Supervisor.get_game_pid(game_code)
       
@@ -375,7 +375,7 @@ defmodule GangWeb.GameLive do
           </svg>
         </button>
 
-        <%= if Mix.env() in [:dev, :test] do %>
+        <%= if Application.get_env(:gang, :enable_dev_tools, false) do %>
           <div class="flex gap-1">
             <button
               class="px-2 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white"
