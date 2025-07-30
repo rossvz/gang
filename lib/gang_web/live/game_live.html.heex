@@ -7,7 +7,7 @@
   />
   <.game_status game={@game} player={@player} />
 
-  <%= if @game.status == :playing do %>
+  <%= if @game.status in [:playing, :completed] do %>
     <div class={[
       "relative mb-8",
       "md:min-h-[700px] lg:min-h-[800px]"
