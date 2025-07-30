@@ -18,7 +18,8 @@
       "Bash(mix deps.get:*)",
       "Bash(mix compile)",
       "Bash(mix deps.update:*)",
-      "Bash(mix deps.clean:*)"
+      "Bash(mix deps.clean:*)",
+      "Bash(mix test:*)"
     ],
     "deny": []
   }

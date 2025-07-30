@@ -215,9 +215,9 @@ defmodule GangWeb.GameLive do
         end
       end)
       
-      # Broadcast the state change so all connected clients update
+      # Broadcast the state change using the Games context (this sends proper {:game_updated, game} messages)
       {:ok, updated_game} = Games.get_game(game_code)
-      GangWeb.Endpoint.broadcast("game:#{game_code}", "game_updated", updated_game)
+      Phoenix.PubSub.broadcast(Gang.PubSub, "game:#{game_code}", {:game_updated, updated_game})
       
       {:noreply, socket}
     else
@@ -237,9 +237,6 @@ defmodule GangWeb.GameLive do
     end)
   end
 
-  def handle_event("dev_increment_counter", _params, socket) do
-    {:noreply, socket}
-  end
 
   @impl true
   def handle_info(:advance_after_evaluation, socket) do
