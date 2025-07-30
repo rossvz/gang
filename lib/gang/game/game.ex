@@ -108,6 +108,18 @@ defmodule Gang.Game do
     GenServer.call(game_pid, :advance_round)
   end
 
+  @doc """
+  Resets the game to initial state while keeping all players.
+  Only works when game status is :completed.
+  """
+  def reset_game(code) when is_binary(code) do
+    GenServer.call(via_tuple(code), :reset_game)
+  end
+
+  def reset_game(game_pid) do
+    GenServer.call(game_pid, :reset_game)
+  end
+
   # Server callbacks
 
   @impl true
@@ -193,6 +205,13 @@ defmodule Gang.Game do
   @impl true
   def handle_call(:advance_round, _from, state) do
     updated_state = State.advance_round(state)
+    broadcast_update(updated_state)
+    {:reply, {:ok, updated_state}, updated_state}
+  end
+
+  @impl true
+  def handle_call(:reset_game, _from, state) do
+    updated_state = State.reset_game(state)
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
   end

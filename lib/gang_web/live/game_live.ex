@@ -170,6 +170,12 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
+  def handle_event("reset_game", _params, socket) do
+    Games.reset_game(socket.assigns.game_id)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("copy_link", %{"code" => game_code}, socket) do
     # Generate the path using the ~p sigil for compile-time checks
     game_path = ~p"/games/#{game_code}"
@@ -453,6 +459,15 @@ defmodule GangWeb.GameLive do
                 Game Over! Too many alarms triggered!
               </span>
             </div>
+
+            <%= if @game.status == :completed do %>
+              <button
+                class="px-6 py-3 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
+                phx-click="reset_game"
+              >
+                New Game with Same Players
+              </button>
+            <% end %>
           </div>
         <% end %>
       <% end %>

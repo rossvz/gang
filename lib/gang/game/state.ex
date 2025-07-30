@@ -316,6 +316,39 @@ defmodule Gang.Game.State do
   end
 
   @doc """
+  Resets the game to the initial state while keeping all players.
+  Used for starting a new game with the same players after completion.
+  """
+  def reset_game(state) do
+    if state.status == :completed do
+      # Clear player cards and rank chips but keep the players
+      reset_players =
+        Enum.map(state.players, fn player ->
+          %{player | cards: [], rank_chips: []}
+        end)
+
+      %{
+        state
+        | status: :waiting,
+          current_round: :preflop,
+          current_phase: :rank_chip_selection,
+          current_round_color: :white,
+          vaults: 0,
+          alarms: 0,
+          last_round_result: nil,
+          community_cards: [nil, nil, nil, nil, nil],
+          all_rank_chips_claimed?: false,
+          deck: [],
+          players: reset_players,
+          evaluated_hands: nil,
+          last_active: DateTime.utc_now()
+      }
+    else
+      state
+    end
+  end
+
+  @doc """
   Returns a player's chip to the unclaimed pool.
   """
   def return_chip(state, player_id, rank, color_atom) do
