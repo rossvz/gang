@@ -191,6 +191,20 @@ defmodule Gang.Games do
     end
   end
 
+  @doc """
+  Resets a completed game to initial state while keeping all players.
+  Only works when game status is :completed.
+  """
+  def reset_game(code) do
+    if GameSupervisor.game_exists?(code) do
+      result = Game.reset_game(code)
+      broadcast_update(code)
+      result
+    else
+      {:error, :game_not_found}
+    end
+  end
+
   # Broadcasts an update of the game state.
   # No @doc for private functions
   defp broadcast_update(code) do

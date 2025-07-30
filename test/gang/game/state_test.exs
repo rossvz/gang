@@ -373,4 +373,94 @@ defmodule Gang.Game.StateTest do
       assert updated_state.community_cards == [nil, nil, nil, nil, nil]
     end
   end
+
+  describe "reset_game/1" do
+    test "resets completed game while keeping players" do
+      # Create a completed game state with players, cards, and score
+      alice = %Player{
+        id: "alice-id",
+        name: "Alice",
+        cards: [%Card{rank: 2, suit: :hearts}, %Card{rank: 3, suit: :clubs}],
+        rank_chips: [%RankChip{rank: 1, color: :red}]
+      }
+
+      bob = %Player{
+        id: "bob-id",
+        name: "Bob",
+        cards: [%Card{rank: 10, suit: :hearts}, %Card{rank: :jack, suit: :clubs}],
+        rank_chips: [%RankChip{rank: 2, color: :red}]
+      }
+
+      completed_state = %State{
+        code: "TEST",
+        status: :completed,
+        players: [alice, bob],
+        current_round: :evaluation,
+        current_phase: :dealing,
+        current_round_color: :red,
+        vaults: 3,
+        alarms: 1,
+        last_round_result: :vault,
+        community_cards: [
+          %Card{rank: 4, suit: :hearts},
+          %Card{rank: 5, suit: :hearts},
+          %Card{rank: 6, suit: :hearts},
+          %Card{rank: 7, suit: :hearts},
+          %Card{rank: 8, suit: :hearts}
+        ],
+        all_rank_chips_claimed?: true,
+        evaluated_hands: %{"Alice" => {:pair, [2]}, "Bob" => {:high_card, [:jack]}}
+      }
+
+      # Reset the game
+      reset_state = State.reset_game(completed_state)
+
+      # Should reset game state to initial values
+      assert reset_state.status == :waiting
+      assert reset_state.current_round == :preflop
+      assert reset_state.current_phase == :rank_chip_selection
+      assert reset_state.current_round_color == :white
+      assert reset_state.vaults == 0
+      assert reset_state.alarms == 0
+      assert reset_state.last_round_result == nil
+      assert reset_state.community_cards == [nil, nil, nil, nil, nil]
+      assert reset_state.all_rank_chips_claimed? == false
+      assert reset_state.deck == []
+      assert reset_state.evaluated_hands == nil
+
+      # Should keep the same players but clear their cards and chips
+      assert length(reset_state.players) == 2
+      assert Enum.at(reset_state.players, 0).name == "Alice"
+      assert Enum.at(reset_state.players, 0).id == "alice-id"
+      assert Enum.at(reset_state.players, 0).cards == []
+      assert Enum.at(reset_state.players, 0).rank_chips == []
+
+      assert Enum.at(reset_state.players, 1).name == "Bob"
+      assert Enum.at(reset_state.players, 1).id == "bob-id"
+      assert Enum.at(reset_state.players, 1).cards == []
+      assert Enum.at(reset_state.players, 1).rank_chips == []
+
+      # Should preserve the game code
+      assert reset_state.code == "TEST"
+    end
+
+    test "doesn't reset if game is not completed" do
+      # Create a playing game state
+      playing_state = %State{
+        code: "TEST",
+        status: :playing,
+        vaults: 2,
+        alarms: 1
+      }
+
+      # Try to reset
+      result_state = State.reset_game(playing_state)
+
+      # Should be unchanged
+      assert result_state == playing_state
+      assert result_state.status == :playing
+      assert result_state.vaults == 2
+      assert result_state.alarms == 1
+    end
+  end
 end

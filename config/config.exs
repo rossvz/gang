@@ -39,7 +39,9 @@ config :gang, GangWeb.Endpoint,
 
 config :gang,
   ecto_repos: [Gang.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  # Development tools configuration
+  enable_dev_tools: false
 
 # Configures Elixir's Logger
 config :logger, :console,

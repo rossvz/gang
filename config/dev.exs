@@ -82,5 +82,8 @@ config :phoenix_live_view,
 
   enable_expensive_runtime_checks: true
 
+# Enable development tools (dev buttons, etc)
+config :gang, enable_dev_tools: true
+
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
