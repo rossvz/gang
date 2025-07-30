@@ -7,7 +7,7 @@ image: rossvz/gang
 # Deploy to these servers.
 servers:
   web:
-     - 147.93.47.41
+    - 147.93.47.41
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -19,7 +19,7 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: true
-  host: gang.rosscodes.com  # This should be your domain name, not the IP
+  host: gang.rosscodes.com # This should be your domain name, not the IP
   # Proxy connects to your container on port 80 by default.
   app_port: 4090
 
@@ -35,9 +35,10 @@ registry:
 
 # Configure builder setup.
 builder:
-  arch: 
+  arch:
     - amd64
-  remote: ssh://rossvz@100.84.47.110
+  remote:
+    ssh://rossvz@100.84.47.110
 
     # - arm64
   # Pass in additional build args needed for your Dockerfile.
@@ -50,6 +51,7 @@ env:
   clear:
     PORT: 4090
     MIX_ENV: prod
+    PHX_HOST: gang.rosscodes.com
   secret:
     - SECRET_KEY_BASE
 
@@ -64,7 +66,6 @@ aliases:
 #
 ssh:
   user: rossvz
-
 # Use a persistent storage volume.
 #
 # volumes:
