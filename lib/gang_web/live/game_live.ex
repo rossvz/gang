@@ -183,38 +183,58 @@ defmodule GangWeb.GameLive do
     {:noreply, push_event(socket, "copy_to_clipboard", %{text: share_url})}
   end
 
-  # Development helper - only works in dev environment
+  # Development helper - only works in dev and test environments
   @impl true
   def handle_event("dev_increment_counter", %{"type" => type}, socket) do
-    if Mix.env() == :dev do
-      current_game = socket.assigns.game
+    if Mix.env() in [:dev, :test] do
+      game_code = socket.assigns.game_id
+      game_pid = Gang.Game.Supervisor.get_game_pid(game_code)
       
-      updated_game = case type do
-        "alarm" ->
-          new_alarms = current_game.alarms + 1
-          %{current_game | 
-            alarms: new_alarms,
-            last_round_result: :alarm,
-            status: if(new_alarms >= 3, do: :completed, else: current_game.status),
-            current_round: if(new_alarms >= 3, do: :evaluation, else: current_game.current_round),
-            evaluated_hands: if(new_alarms >= 3, do: %{"dev" => {:pair, []}}, else: current_game.evaluated_hands)
-          }
-        
-        "vault" ->
-          new_vaults = current_game.vaults + 1
-          %{current_game | 
-            vaults: new_vaults,
-            last_round_result: :vault,
-            status: if(new_vaults >= 3, do: :completed, else: current_game.status),
-            current_round: if(new_vaults >= 3, do: :evaluation, else: current_game.current_round),
-            evaluated_hands: if(new_vaults >= 3, do: %{"dev" => {:pair, []}}, else: current_game.evaluated_hands)
-          }
-      end
+      # Update the GenServer state directly
+      :sys.replace_state(game_pid, fn state ->
+        case type do
+          "alarm" ->
+            new_alarms = state.alarms + 1
+            %{state | 
+              alarms: new_alarms,
+              last_round_result: :alarm,
+              status: if(new_alarms >= 3, do: :completed, else: state.status),
+              current_round: if(new_alarms >= 3, do: :evaluation, else: state.current_round),
+              evaluated_hands: if(new_alarms >= 3, do: create_mock_evaluated_hands(state.players), else: state.evaluated_hands)
+            }
+          
+          "vault" ->
+            new_vaults = state.vaults + 1
+            %{state | 
+              vaults: new_vaults,
+              last_round_result: :vault,
+              status: if(new_vaults >= 3, do: :completed, else: state.status),
+              current_round: if(new_vaults >= 3, do: :evaluation, else: state.current_round),
+              evaluated_hands: if(new_vaults >= 3, do: create_mock_evaluated_hands(state.players), else: state.evaluated_hands)
+            }
+        end
+      end)
       
-      {:noreply, assign(socket, :game, updated_game)}
+      # Broadcast the state change so all connected clients update
+      {:ok, updated_game} = Games.get_game(game_code)
+      GangWeb.Endpoint.broadcast("game:#{game_code}", "game_updated", updated_game)
+      
+      {:noreply, socket}
     else
       {:noreply, socket}
     end
+  end
+  
+  # Helper to create mock evaluated hands for all players
+  defp create_mock_evaluated_hands(players) do
+    mock_hands = [:pair, :flush, :high_card, :two_pair, :straight]
+    
+    players
+    |> Enum.with_index()
+    |> Enum.into(%{}, fn {player, index} ->
+      hand_type = Enum.at(mock_hands, rem(index, length(mock_hands)))
+      {player.name, {hand_type, []}}
+    end)
   end
 
   def handle_event("dev_increment_counter", _params, socket) do
@@ -358,7 +378,7 @@ defmodule GangWeb.GameLive do
           </svg>
         </button>
 
-        <%= if Mix.env() == :dev do %>
+        <%= if Mix.env() in [:dev, :test] do %>
           <div class="flex gap-1">
             <button
               class="px-2 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white"
