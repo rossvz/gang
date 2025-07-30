@@ -268,6 +268,16 @@ defmodule GangWeb.GameLive do
      |> assign(player_split: player_split)}
   end
 
+  @impl true
+  def terminate(_reason, socket) do
+    # Handle disconnection when LiveView process terminates (e.g., tab close, navigation)
+    if socket.assigns[:player_id] && socket.assigns[:game_id] do
+      Games.leave_game(socket.assigns.game_id, socket.assigns.player_id)
+    end
+
+    :ok
+  end
+
   @spec split_players(list(map()), String.t() | nil) :: player_split()
   defp split_players(players, current_player_id) do
     unique_players = Enum.uniq_by(players, & &1.id)

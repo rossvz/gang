@@ -23,6 +23,9 @@ config :gang, GangWeb.Endpoint,
   secret_key_base: "G+RaqdFoL0PQRNEx4hld2lhdtcZiMLoA0tgGb56vKMnHD3vK/RMEEt5JkExgIhc7",
   server: false
 
+# Enable development tools for testing
+config :gang, enable_dev_tools: true
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 
@@ -32,9 +35,6 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
-
-# Enable development tools for testing
-config :gang, enable_dev_tools: true
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

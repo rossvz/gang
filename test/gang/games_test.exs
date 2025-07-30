@@ -45,7 +45,7 @@ defmodule Gang.GamesTest do
 
     test "returns error when trying to close non-existent game" do
       player = Player.new("player", "player-id")
-      
+
       assert {:error, :game_not_found} = Games.close_game("FAKE", player.id)
     end
 
@@ -62,7 +62,7 @@ defmodule Gang.GamesTest do
     test "creates game without owner when no owner_id provided" do
       {:ok, code} = Games.create_game()
       {:ok, state} = Games.get_game(code)
-      
+
       assert state.owner_id == nil
     end
 
@@ -70,7 +70,7 @@ defmodule Gang.GamesTest do
       owner_id = "test-owner-id"
       {:ok, code} = Games.create_game(owner_id)
       {:ok, state} = Games.get_game(code)
-      
+
       assert state.owner_id == owner_id
     end
   end
