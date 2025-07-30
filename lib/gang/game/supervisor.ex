@@ -27,11 +27,12 @@ defmodule Gang.Game.Supervisor do
   def create_game(owner_id \\ nil) do
     code = generate_unique_code()
 
-    child_spec = if owner_id do
-      {Gang.Game, {code, owner_id}}
-    else
-      {Gang.Game, code}
-    end
+    child_spec =
+      if owner_id do
+        {Gang.Game, {code, owner_id}}
+      else
+        {Gang.Game, code}
+      end
 
     case DynamicSupervisor.start_child(Gang.GameDynamicSupervisor, child_spec) do
       {:ok, _pid} -> {:ok, code}

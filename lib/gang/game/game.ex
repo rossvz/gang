@@ -15,6 +15,8 @@ defmodule Gang.Game do
   alias Gang.Game.State
   alias Gang.PubSub
 
+  require Logger
+
   # How long to wait for a player to reconnect after they leave the game
   @permanently_remove_player_timeout 90_000
 
@@ -226,9 +228,23 @@ defmodule Gang.Game do
 
   @impl true
   def handle_info({:permanently_remove_player, player_id}, state) do
-    updated_state = State.remove_player(state, player_id)
-    broadcast_update(updated_state)
-    {:noreply, updated_state}
+    # Check if the player is still connected - if so, don't remove them
+    case Enum.find(state.players, &(&1.id == player_id)) do
+      nil ->
+        # Player not found, nothing to remove
+        {:noreply, state}
+
+      %{connected: true} ->
+        Logger.info("Player #{player_id} has reconnected, not removing")
+        # Player has reconnected, don't remove them
+        {:noreply, state}
+
+      %{connected: false} ->
+        # Player is still disconnected, proceed with removal
+        updated_state = State.remove_player(state, player_id)
+        broadcast_update(updated_state)
+        {:noreply, updated_state}
+    end
   end
 
   defp broadcast_update(state) do
