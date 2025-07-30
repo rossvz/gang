@@ -189,54 +189,59 @@ defmodule GangWeb.GameLive do
     if Application.get_env(:gang, :enable_dev_tools, false) do
       game_code = socket.assigns.game_id
       game_pid = Gang.Game.Supervisor.get_game_pid(game_code)
-      
+
       # Update the GenServer state directly
       :sys.replace_state(game_pid, fn state ->
         case type do
           "alarm" ->
             new_alarms = state.alarms + 1
-            %{state | 
-              alarms: new_alarms,
-              last_round_result: :alarm,
-              status: if(new_alarms >= 3, do: :completed, else: state.status),
-              current_round: if(new_alarms >= 3, do: :evaluation, else: state.current_round),
-              evaluated_hands: if(new_alarms >= 3, do: create_mock_evaluated_hands(state.players), else: state.evaluated_hands)
+
+            %{
+              state
+              | alarms: new_alarms,
+                last_round_result: :alarm,
+                status: if(new_alarms >= 3, do: :completed, else: state.status),
+                current_round: if(new_alarms >= 3, do: :evaluation, else: state.current_round),
+                evaluated_hands:
+                  if(new_alarms >= 3, do: create_mock_evaluated_hands(state.players), else: state.evaluated_hands)
             }
-          
+
           "vault" ->
             new_vaults = state.vaults + 1
-            %{state | 
-              vaults: new_vaults,
-              last_round_result: :vault,
-              status: if(new_vaults >= 3, do: :completed, else: state.status),
-              current_round: if(new_vaults >= 3, do: :evaluation, else: state.current_round),
-              evaluated_hands: if(new_vaults >= 3, do: create_mock_evaluated_hands(state.players), else: state.evaluated_hands)
+
+            %{
+              state
+              | vaults: new_vaults,
+                last_round_result: :vault,
+                status: if(new_vaults >= 3, do: :completed, else: state.status),
+                current_round: if(new_vaults >= 3, do: :evaluation, else: state.current_round),
+                evaluated_hands:
+                  if(new_vaults >= 3, do: create_mock_evaluated_hands(state.players), else: state.evaluated_hands)
             }
         end
       end)
-      
+
       # Broadcast the state change using the Games context (this sends proper {:game_updated, game} messages)
       {:ok, updated_game} = Games.get_game(game_code)
       Phoenix.PubSub.broadcast(Gang.PubSub, "game:#{game_code}", {:game_updated, updated_game})
-      
+
       {:noreply, socket}
     else
       {:noreply, socket}
     end
   end
-  
+
   # Helper to create mock evaluated hands for all players
   defp create_mock_evaluated_hands(players) do
     mock_hands = [:pair, :flush, :high_card, :two_pair, :straight]
-    
+
     players
     |> Enum.with_index()
-    |> Enum.into(%{}, fn {player, index} ->
+    |> Map.new(fn {player, index} ->
       hand_type = Enum.at(mock_hands, rem(index, length(mock_hands)))
       {player.name, {hand_type, []}}
     end)
   end
-
 
   @impl true
   def handle_info(:advance_after_evaluation, socket) do
@@ -582,7 +587,11 @@ defmodule GangWeb.GameLive do
             <% end %>
           </div>
           <%= if @game.current_round == :evaluation && @game.evaluated_hands do %>
-            <.hand_result hand={Map.get(@game.evaluated_hands, @player.name)} size={@size} />
+            <.hand_result
+              hand={Map.get(@game.evaluated_hands, @player.name)}
+              expected_rank={Map.get(@game.expected_rankings || %{}, @player.name)}
+              size={@size}
+            />
           <% end %>
         </div>
       <% end %>
@@ -594,35 +603,27 @@ defmodule GangWeb.GameLive do
     ~H"""
     <%= if @hand do %>
       <div class={[
-        "text-center font-medium",
+        "text-center font-medium flex flex-col items-center gap-1",
         @size == "small" && "text-xs",
         @size == "normal" && "text-sm",
         @size == "large" && "text-base"
       ]}>
         <span class="text-ctp-mauve">
-          <%= case elem(@hand, 0) do %>
-            <% :royal_flush -> %>
-              Royal Flush
-            <% :straight_flush -> %>
-              Straight Flush
-            <% :four_of_a_kind -> %>
-              Four of a Kind
-            <% :full_house -> %>
-              Full House
-            <% :flush -> %>
-              Flush
-            <% :straight -> %>
-              Straight
-            <% :three_of_a_kind -> %>
-              Three of a Kind
-            <% :two_pair -> %>
-              Two Pair
-            <% :pair -> %>
-              Pair
-            <% :high_card -> %>
-              High Card
-          <% end %>
+          {format_hand_name(@hand)}
         </span>
+        <%= if @expected_rank do %>
+          <div class="flex items-center gap-1">
+            <span class="text-xs text-ctp-subtext0">Expected:</span>
+            <div class={[
+              "rounded-full flex items-center justify-center font-bold border-2 bg-ctp-surface1 border-ctp-overlay1 text-ctp-text",
+              @size == "small" && "w-4 h-4 text-xs",
+              @size == "normal" && "w-6 h-6 text-sm",
+              @size == "large" && "w-8 h-8 text-base"
+            ]}>
+              {@expected_rank}
+            </div>
+          </div>
+        <% end %>
       </div>
     <% end %>
     """
@@ -777,6 +778,9 @@ defmodule GangWeb.GameLive do
             <%= if @game.current_round == :evaluation && @game.evaluated_hands do %>
               <.hand_result
                 hand={Map.get(@game.evaluated_hands, @player_split.current_player.name)}
+                expected_rank={
+                  Map.get(@game.expected_rankings || %{}, @player_split.current_player.name)
+                }
                 size="normal"
               />
             <% end %>
@@ -896,5 +900,106 @@ defmodule GangWeb.GameLive do
     |> Enum.flat_map(& &1.rank_chips)
     |> Enum.filter(&(&1.color == current_color))
     |> Enum.map(& &1.rank)
+  end
+
+  # Helper function to format hand names with tie-breaker details
+  defp format_hand_name(hand) do
+    case hand do
+      # Handle new format with details
+      {:royal_flush, _cards, _details} ->
+        "Royal Flush"
+
+      {:straight_flush, _cards, %{high_card: high}} ->
+        "Straight Flush (#{high} high)"
+
+      {:four_of_a_kind, _cards, %{four_rank: rank, kicker: kicker}} ->
+        "Four #{rank}s (#{kicker} kicker)"
+
+      {:full_house, _cards, %{three_rank: three, pair_rank: pair}} ->
+        "Full House (#{three}s over #{pair}s)"
+
+      {:flush, _cards, %{high_card: high}} ->
+        "Flush (#{high} high)"
+
+      {:straight, _cards, %{high_card: high}} ->
+        "Straight (#{high} high)"
+
+      {:three_of_a_kind, _cards, %{three_rank: rank, kicker: kicker}} ->
+        "Three #{rank}s (#{kicker} kicker)"
+
+      {:two_pair, _cards, %{high_pair: high, low_pair: low, kicker: kicker}} ->
+        "Two Pair (#{high}s and #{low}s, #{kicker} kicker)"
+
+      {:pair, _cards, %{pair_rank: pair, kicker: kicker}} ->
+        "Pair of #{pair}s (#{kicker} kicker)"
+
+      {:high_card, _cards, %{high_card: high}} ->
+        "#{high} High"
+
+      # Handle legacy format without details for backward compatibility
+      {:royal_flush, _cards} ->
+        "Royal Flush"
+
+      {:straight_flush, _cards} ->
+        "Straight Flush"
+
+      {:four_of_a_kind, _cards} ->
+        "Four of a Kind"
+
+      {:full_house, _cards} ->
+        "Full House"
+
+      {:flush, _cards} ->
+        "Flush"
+
+      {:straight, _cards} ->
+        "Straight"
+
+      {:three_of_a_kind, _cards} ->
+        "Three of a Kind"
+
+      {:two_pair, _cards} ->
+        "Two Pair"
+
+      {:pair, _cards} ->
+        "Pair"
+
+      {:high_card, _cards} ->
+        "High Card"
+
+      # Handle atom-only format (from mock data)
+      :royal_flush ->
+        "Royal Flush"
+
+      :straight_flush ->
+        "Straight Flush"
+
+      :four_of_a_kind ->
+        "Four of a Kind"
+
+      :full_house ->
+        "Full House"
+
+      :flush ->
+        "Flush"
+
+      :straight ->
+        "Straight"
+
+      :three_of_a_kind ->
+        "Three of a Kind"
+
+      :two_pair ->
+        "Two Pair"
+
+      :pair ->
+        "Pair"
+
+      :high_card ->
+        "High Card"
+
+      _ ->
+        "Unknown Hand"
+    end
   end
 end

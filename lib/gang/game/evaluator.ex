@@ -51,13 +51,23 @@ defmodule Gang.Game.Evaluator do
         Map.put(acc, player.name, hand_value)
       end)
 
+    # Sort players by actual hand strength (weakest to strongest) to get expected order
+    expected_order =
+      player_hands
+      |> Enum.sort_by(fn {_name, hand} -> hand end, fn hand1, hand2 ->
+        HandEvaluator.compare_hands(hand1, hand2) != :gt
+      end)
+      |> Enum.with_index(1)
+      |> Map.new(fn {{name, _hand}, rank} -> {name, rank} end)
+
     # Check if the ordering is correct (weakest to strongest)
     is_correct_order = evaluate_order(ordered_players, player_hands)
     round_result = if is_correct_order, do: :vault, else: :alarm
 
     %{
       round_result: round_result,
-      player_hands: player_hands
+      player_hands: player_hands,
+      expected_rankings: expected_order
     }
   end
 
