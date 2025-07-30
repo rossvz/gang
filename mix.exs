@@ -42,6 +42,7 @@ defmodule Gang.MixProject do
       {:phoenix_live_view, "~> 1.0"},
       {:floki, "~> 0.37", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:live_debugger, "~> 0.3", only: [:dev]},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:heroicons,

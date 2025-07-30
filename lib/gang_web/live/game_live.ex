@@ -422,7 +422,7 @@ defmodule GangWeb.GameLive do
         Start Game
       </button>
 
-      <%= if @game.status == :playing && @player do %>
+      <%= if @game.status in [:playing, :completed] && @player do %>
         <%= if @game.current_phase == :rank_chip_selection && @game.all_rank_chips_claimed? do %>
           <button
             :if={@game.current_round != :river}
