@@ -233,13 +233,19 @@ defmodule GangWeb.GameLive do
 
   # Helper to create mock evaluated hands for all players
   defp create_mock_evaluated_hands(players) do
-    mock_hands = [:pair, :flush, :high_card, :two_pair, :straight]
+    mock_hands = [
+      {:pair, [], %{pair_rank: "Kings", kicker: "Ace"}},
+      {:flush, [], %{high_card: "Ace"}},
+      {:high_card, [], %{high_card: "Queen"}},
+      {:two_pair, [], %{high_pair: "Jacks", low_pair: "8", kicker: "King"}},
+      {:straight, [], %{high_card: "10"}}
+    ]
 
     players
     |> Enum.with_index()
     |> Map.new(fn {player, index} ->
-      hand_type = Enum.at(mock_hands, rem(index, length(mock_hands)))
-      {player.name, {hand_type, []}}
+      hand = Enum.at(mock_hands, rem(index, length(mock_hands)))
+      {player.name, hand}
     end)
   end
 
@@ -905,7 +911,6 @@ defmodule GangWeb.GameLive do
   # Helper function to format hand names with tie-breaker details
   defp format_hand_name(hand) do
     case hand do
-      # Handle new format with details
       {:royal_flush, _cards, _details} ->
         "Royal Flush"
 
@@ -935,68 +940,6 @@ defmodule GangWeb.GameLive do
 
       {:high_card, _cards, %{high_card: high}} ->
         "#{high} High"
-
-      # Handle legacy format without details for backward compatibility
-      {:royal_flush, _cards} ->
-        "Royal Flush"
-
-      {:straight_flush, _cards} ->
-        "Straight Flush"
-
-      {:four_of_a_kind, _cards} ->
-        "Four of a Kind"
-
-      {:full_house, _cards} ->
-        "Full House"
-
-      {:flush, _cards} ->
-        "Flush"
-
-      {:straight, _cards} ->
-        "Straight"
-
-      {:three_of_a_kind, _cards} ->
-        "Three of a Kind"
-
-      {:two_pair, _cards} ->
-        "Two Pair"
-
-      {:pair, _cards} ->
-        "Pair"
-
-      {:high_card, _cards} ->
-        "High Card"
-
-      # Handle atom-only format (from mock data)
-      :royal_flush ->
-        "Royal Flush"
-
-      :straight_flush ->
-        "Straight Flush"
-
-      :four_of_a_kind ->
-        "Four of a Kind"
-
-      :full_house ->
-        "Full House"
-
-      :flush ->
-        "Flush"
-
-      :straight ->
-        "Straight"
-
-      :three_of_a_kind ->
-        "Three of a Kind"
-
-      :two_pair ->
-        "Two Pair"
-
-      :pair ->
-        "Pair"
-
-      :high_card ->
-        "High Card"
 
       _ ->
         "Unknown Hand"

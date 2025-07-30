@@ -103,22 +103,6 @@ defmodule Gang.Game.HandEvaluator do
     compare_high_cards(cards1, cards2)
   end
 
-  # Handle legacy format without details for backward compatibility
-  def compare_hands({type1, _cards1}, {type2, _cards2}) when type1 != type2 do
-    rank1 = Enum.find_index(@hand_rankings, &(&1 == type1))
-    rank2 = Enum.find_index(@hand_rankings, &(&1 == type2))
-
-    cond do
-      rank1 > rank2 -> :gt
-      rank1 < rank2 -> :lt
-      true -> :eq
-    end
-  end
-
-  def compare_hands({same_type, cards1}, {same_type, cards2}) do
-    compare_high_cards(cards1, cards2)
-  end
-
   # Helper functions for evaluating hand types
 
   defp is_royal_flush(cards) do
