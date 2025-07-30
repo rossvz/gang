@@ -12,8 +12,8 @@ defmodule Gang.Games do
   @doc """
   Creates a new game and returns its join code.
   """
-  def create_game do
-    GameSupervisor.create_game()
+  def create_game(owner_id \\ nil) do
+    GameSupervisor.create_game(owner_id)
   end
 
   @doc """
@@ -260,6 +260,30 @@ defmodule Gang.Games do
   """
   def get_round_chips(state, round) do
     Map.get(state.unclaimed_rank_chips, round, [])
+  end
+
+  @doc """
+  Closes/removes a game from the lobby.
+  Only the game owner can close a game.
+  """
+  def close_game(code, player_id) do
+    if GameSupervisor.game_exists?(code) do
+      case get_game(code) do
+        {:ok, state} ->
+          if state.owner_id == player_id do
+            result = GameSupervisor.terminate_game(code)
+            PubSub.broadcast(Gang.PubSub, "games", {:game_removed, code})
+            result
+          else
+            {:error, :not_owner}
+          end
+
+        error ->
+          error
+      end
+    else
+      {:error, :game_not_found}
+    end
   end
 
   @doc """

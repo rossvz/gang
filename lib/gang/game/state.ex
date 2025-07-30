@@ -42,6 +42,7 @@ defmodule Gang.Game.State do
 
   @type t :: %__MODULE__{
           code: String.t(),
+          owner_id: String.t() | nil,
           players: list(Player.t()),
           status: status(),
           current_round: round(),
@@ -60,6 +61,7 @@ defmodule Gang.Game.State do
 
   defstruct [
     :code,
+    :owner_id,
     players: [],
     status: :waiting,
     current_round: :preflop,
@@ -79,9 +81,10 @@ defmodule Gang.Game.State do
   @doc """
   Creates a new game state with a unique code and empty players.
   """
-  def new(code) do
+  def new(code, owner_id \\ nil) do
     %__MODULE__{
       code: code,
+      owner_id: owner_id,
       last_active: DateTime.utc_now(),
       game_created: DateTime.utc_now()
     }

@@ -43,7 +43,7 @@ defmodule GangWeb.LobbyLive do
 
   @impl true
   def handle_event("create_game", _params, socket) do
-    case Games.create_game() do
+    case Games.create_game(socket.assigns.player.id) do
       {:ok, game_code} ->
         Games.broadcast_game_created(game_code)
 
@@ -80,6 +80,23 @@ defmodule GangWeb.LobbyLive do
     updated_player = Player.new(player_name, player_id)
 
     {:noreply, assign(socket, player: updated_player)}
+  end
+
+  @impl true
+  def handle_event("close_game", %{"game_code" => game_code}, socket) do
+    case Games.close_game(game_code, socket.assigns.player.id) do
+      :ok ->
+        {:noreply, put_flash(socket, :info, "Game #{game_code} has been closed")}
+
+      {:error, :not_owner} ->
+        {:noreply, put_flash(socket, :error, "Only the game owner can close this game")}
+
+      {:error, :game_not_found} ->
+        {:noreply, put_flash(socket, :error, "Game not found")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Error closing game: #{reason}")}
+    end
   end
 
   @impl true

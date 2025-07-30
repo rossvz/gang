@@ -20,8 +20,12 @@ defmodule Gang.Game do
 
   # Client API
 
-  def start_link(code) do
+  def start_link(code) when is_binary(code) do
     GenServer.start_link(__MODULE__, code, name: via_tuple(code))
+  end
+
+  def start_link({code, owner_id}) do
+    GenServer.start_link(__MODULE__, {code, owner_id}, name: via_tuple(code))
   end
 
   @doc """
@@ -123,8 +127,12 @@ defmodule Gang.Game do
   # Server callbacks
 
   @impl true
-  def init(code) do
+  def init(code) when is_binary(code) do
     {:ok, State.new(code)}
+  end
+
+  def init({code, owner_id}) do
+    {:ok, State.new(code, owner_id)}
   end
 
   @impl true

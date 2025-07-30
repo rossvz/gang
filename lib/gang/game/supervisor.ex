@@ -24,13 +24,16 @@ defmodule Gang.Game.Supervisor do
   @doc """
   Creates a new game with a unique code.
   """
-  def create_game do
+  def create_game(owner_id \\ nil) do
     code = generate_unique_code()
 
-    case DynamicSupervisor.start_child(
-           Gang.GameDynamicSupervisor,
-           {Gang.Game, code}
-         ) do
+    child_spec = if owner_id do
+      {Gang.Game, {code, owner_id}}
+    else
+      {Gang.Game, code}
+    end
+
+    case DynamicSupervisor.start_child(Gang.GameDynamicSupervisor, child_spec) do
       {:ok, _pid} -> {:ok, code}
       {:error, reason} -> {:error, reason}
     end
