@@ -23,6 +23,74 @@ defmodule GangWeb.LobbyLiveTest do
     assert html =~ "Luke Skywalker"
   end
 
+  describe "edit mode functionality" do
+    test "shows edit button when name is set", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?player_name=Alice")
+      
+      html = render(view)
+      assert html =~ "Alice"
+      assert html =~ "Edit name"
+      refute html =~ "Enter Your Name"
+    end
+
+    test "clicking edit button switches to edit mode", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?player_name=Alice")
+      
+      html = render_click(view, "edit_name")
+      
+      assert html =~ "Enter Your Name"
+      assert html =~ "Save"
+      assert html =~ "Cancel"
+    end
+
+    test "cancel edit returns to display mode", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?player_name=Alice")
+      
+      # Enter edit mode
+      render_click(view, "edit_name")
+      
+      # Cancel edit
+      html = render_click(view, "cancel_edit")
+      
+      assert html =~ "Alice"
+      assert html =~ "Edit name"
+      refute html =~ "Enter Your Name"
+    end
+
+    test "update_preview changes avatar in real-time", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?player_name=Alice")
+      
+      # Enter edit mode
+      initial_html = render_click(view, "edit_name")
+      assert initial_html =~ "seed=Alice"
+      
+      # Update preview should change the avatar seed
+      updated_html = render_change(view, "update_preview", %{player_name: "Bob"})
+      
+      assert updated_html =~ "seed=Bob"
+      
+      # The main avatar in edit mode should now use Bob's seed
+      # (there might still be Alice's seed in the games table, so we check for the edit mode avatar specifically)
+      assert updated_html =~ "Your avatar"
+    end
+
+    test "save exits edit mode and updates name", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?player_name=Alice")
+      
+      # Enter edit mode and submit new name
+      render_click(view, "edit_name")
+      html = 
+        view
+        |> form("#player-name-form", %{player_name: "Bob"})
+        |> render_submit()
+      
+      # Should be back in display mode with new name
+      assert html =~ "Bob"
+      assert html =~ "Edit name"
+      refute html =~ "Enter Your Name"
+    end
+  end
+
   describe "close game functionality" do
     test "shows close button only for game owner", %{conn: conn} do
       owner = Player.new("Owner", "owner-id")
