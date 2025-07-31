@@ -34,7 +34,7 @@ defmodule Gang.Game.Player do
     %__MODULE__{
       id: id,
       name: name,
-      avatar: Avatar.generate(id),
+      avatar: Avatar.generate(name),
       last_activity: DateTime.utc_now()
     }
   end
@@ -58,6 +58,13 @@ defmodule Gang.Game.Player do
   """
   def touch(player) do
     %{player | last_activity: DateTime.utc_now()}
+  end
+
+  @doc """
+  Updates the player's name and regenerates their avatar.
+  """
+  def update_name(player, new_name) do
+    %{player | name: new_name, avatar: Avatar.generate(new_name)}
   end
 
   @doc """

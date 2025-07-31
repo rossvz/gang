@@ -50,9 +50,10 @@ defmodule Gang.Games do
         existing_player = Enum.find(state.players, &(&1.id == player.id))
 
         if existing_player do
-          # Update connection status
+          # Update player info (name/avatar) and connection status
+          Game.update_player_info(code, player)
           Game.update_connection(code, existing_player.id, true)
-          {:ok, existing_player}
+          {:ok, player}
         else
           Game.add_player(code, player)
           broadcast_update(code)

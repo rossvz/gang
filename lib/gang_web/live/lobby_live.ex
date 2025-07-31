@@ -77,8 +77,8 @@ defmodule GangWeb.LobbyLive do
 
   @impl true
   def handle_event("update_preview", %{"player_name" => player_name}, socket) do
-    # Update the preview name but don't save it yet
-    updated_player = %{socket.assigns.player | name: player_name}
+    # Update the preview name and regenerate avatar but don't save it yet
+    updated_player = Player.update_name(socket.assigns.player, player_name)
     {:noreply, assign(socket, player: updated_player)}
   end
 
