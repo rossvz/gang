@@ -29,6 +29,7 @@ defmodule Gang.Game.State do
   """
 
   alias Gang.Game.Card
+  alias Gang.Game.ChatMessage
   alias Gang.Game.Deck
   alias Gang.Game.Evaluator
   alias Gang.Game.Player
@@ -57,7 +58,8 @@ defmodule Gang.Game.State do
           last_active: DateTime.t(),
           evaluated_hands: map() | nil,
           expected_rankings: map() | nil,
-          last_round_result: round_result() | nil
+          last_round_result: round_result() | nil,
+          chat_messages: list(ChatMessage.t())
         }
 
   defstruct [
@@ -77,7 +79,8 @@ defmodule Gang.Game.State do
     game_created: DateTime.utc_now(),
     last_active: DateTime.utc_now(),
     evaluated_hands: nil,
-    expected_rankings: nil
+    expected_rankings: nil,
+    chat_messages: []
   ]
 
   @doc """
@@ -436,6 +439,28 @@ defmodule Gang.Game.State do
       {cards, remaining_deck} = Deck.deal(current_deck, 2)
       {%{player | cards: cards, rank_chips: []}, remaining_deck}
     end)
+  end
+
+  @doc """
+  Adds a chat message to the game state.
+  Keeps only the last 50 messages to prevent memory growth.
+  """
+  def add_chat_message(state, player_id, message) do
+    # Find the player to get their info
+    player = Enum.find(state.players, &(&1.id == player_id))
+    
+    if player do
+      chat_message = ChatMessage.new(player_id, player.name, player.avatar, message)
+      
+      # Add new message to the end and keep only the last 50 messages
+      updated_messages = 
+        (state.chat_messages ++ [chat_message])
+        |> Enum.take(-50) # Take the last 50 messages
+      
+      %{state | chat_messages: updated_messages, last_active: DateTime.utc_now()}
+    else
+      state
+    end
   end
 
   @doc """

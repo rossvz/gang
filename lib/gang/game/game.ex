@@ -100,6 +100,10 @@ defmodule Gang.Game do
     GenServer.call(via_tuple(code), {:return_rank_chip, player_id, rank, color})
   end
 
+  def send_chat_message(code, player_id, message) when is_binary(code) and is_binary(player_id) and is_binary(message) do
+    GenServer.call(via_tuple(code), {:send_chat_message, player_id, message})
+  end
+
   def return_rank_chip(game_pid, player_id, rank, color) do
     GenServer.call(game_pid, {:return_rank_chip, player_id, rank, color})
   end
@@ -222,6 +226,13 @@ defmodule Gang.Game do
   @impl true
   def handle_call({:return_rank_chip, player_id, rank, color}, _from, state) do
     updated_state = State.return_chip(state, player_id, rank, color)
+    broadcast_update(updated_state)
+    {:reply, {:ok, updated_state}, updated_state}
+  end
+
+  @impl true
+  def handle_call({:send_chat_message, player_id, message}, _from, state) do
+    updated_state = State.add_chat_message(state, player_id, message)
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
   end

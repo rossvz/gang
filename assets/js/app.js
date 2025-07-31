@@ -90,6 +90,56 @@ let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
 });
 
+// Chat functionality
+window.addEventListener("phx:clear_chat_input", () => {
+  const chatInputs = document.querySelectorAll('input[name="message"]');
+  chatInputs.forEach(input => {
+    input.value = "";
+  });
+});
+
+window.addEventListener("phx:scroll_chat_to_bottom", () => {
+  // Use requestAnimationFrame for better timing with browser rendering
+  requestAnimationFrame(() => {
+    // Add additional delay to ensure DOM is fully updated
+    setTimeout(() => {
+      const scrollToBottom = (element) => {
+        if (element) {
+          // Try multiple approaches for reliability
+          element.scrollTop = element.scrollHeight;
+          
+          // Fallback: scroll to last child element if available
+          const lastMessage = element.lastElementChild;
+          if (lastMessage) {
+            lastMessage.scrollIntoView({ behavior: 'instant', block: 'end' });
+          }
+          
+          // Final fallback: force scroll with a bit more delay
+          setTimeout(() => {
+            element.scrollTop = element.scrollHeight;
+          }, 10);
+        }
+      };
+      
+      // Scroll all possible chat containers with unique contexts
+      const containers = [
+        document.getElementById("chat-messages-desktop-waiting"),
+        document.getElementById("chat-messages-mobile-waiting"),  
+        document.getElementById("chat-messages-desktop-mobile"),
+        document.getElementById("chat-messages-mobile-mobile"),
+        document.getElementById("chat-messages-desktop-desktop"),
+        document.getElementById("chat-messages-mobile-desktop")
+      ];
+      
+      containers.forEach(container => {
+        if (container) {
+          scrollToBottom(container);
+        }
+      });
+    }, 100); // Increased delay to 100ms for more reliability
+  });
+});
+
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));

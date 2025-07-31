@@ -29,5 +29,11 @@
     </div>
   <% else %>
     <.waiting_room game={@game} />
+    <!-- Chat Panel for Waiting Room -->
+    <ChatComponents.chat_panel 
+      chat_collapsed={Map.get(assigns, :chat_collapsed, false)} 
+      messages={Map.get(@game, :chat_messages, [])}
+      context="waiting"
+    />
   <% end %>
 </div>
