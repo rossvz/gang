@@ -1,66 +1,50 @@
 defmodule Gang.Avatar do
   @moduledoc """
-  Generates simple identicon style avatars as SVG data URIs.
+  Generates avatars using DiceBear's HTTP API.
   The avatar is deterministic based on the provided seed.
   """
 
-  import Bitwise
-
   @doc """
-  Generate an avatar as a data URI SVG using the given seed.
+  Generate an avatar URL using DiceBear's API with the given seed.
   """
   @spec generate(String.t() | nil) :: String.t()
   def generate(nil), do: generate("default-avatar")
 
   def generate(seed) when is_binary(seed) do
-    hash = :crypto.hash(:sha256, seed)
-    color = "#" <> Base.encode16(:binary.part(hash, 0, 3), case: :lower)
+    # URL encode the seed to handle special characters
+    encoded_seed = URI.encode(seed)
 
-    for_result =
-      for <<byte <- hash>>, reduce: [] do
-        acc ->
-          for i <- 0..7, reduce: acc do
-            acc2 -> [byte >>> i &&& 1 | acc2]
-          end
-      end
+    # Catppuccin Macchiato colors (perfect contrast against dark UI)
+    catppuccin_colors = [
+      # macchiato-pink
+      "f5bde6",
+      # macchiato-mauve
+      "c6a0f6",
+      # macchiato-red
+      "ed8796",
+      # macchiato-maroon
+      "ee99a0",
+      # macchiato-peach
+      "f5a97f",
+      # macchiato-yellow
+      "eed49f",
+      # macchiato-green
+      "a6da95",
+      # macchiato-teal
+      "8bd5ca",
+      # macchiato-sky
+      "91d7e3",
+      # macchiato-sapphire
+      "7dc4e4",
+      # macchiato-blue
+      "8aadf4",
+      # macchiato-lavender
+      "b7bdf8"
+    ]
 
-    bits = Enum.reverse(for_result)
+    background_colors = Enum.join(catppuccin_colors, ",")
 
-    pattern_bits = Enum.slice(bits, 0, 15)
-    square = 20
-
-    rects =
-      pattern_bits
-      |> Enum.with_index()
-      |> Enum.flat_map(fn {bit, idx} ->
-        if bit == 1 do
-          row = div(idx, 3)
-          col = rem(idx, 3)
-          base_x = col * square
-          mirror_x = (4 - col) * square
-          y = row * square
-
-          [
-            ~s(<rect x="#{base_x}" y="#{y}" width="#{square}" height="#{square}"/>),
-            if col != 2 do
-              ~s(<rect x="#{mirror_x}" y="#{y}" width="#{square}" height="#{square}"/>)
-            end
-          ]
-        else
-          []
-        end
-      end)
-      |> Enum.filter(& &1)
-      |> Enum.join()
-
-    svg = """
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 #{square * 5} #{square * 5}" shape-rendering="crispEdges">
-      <rect width="100%" height="100%" fill="white"/>
-      <g fill="#{color}">#{rects}</g>
-    </svg>
-    """
-
-    # Properly encode the SVG for data URI - use base64 for better compatibility
-    "data:image/svg+xml;base64," <> Base.encode64(svg)
+    # Use DiceBear's fun-emoji style with Catppuccin theme colors
+    "https://api.dicebear.com/9.x/fun-emoji/svg?seed=#{encoded_seed}&radius=30&backgroundColor=#{background_colors}"
   end
 end

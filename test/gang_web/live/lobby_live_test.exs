@@ -20,7 +20,7 @@ defmodule GangWeb.LobbyLiveTest do
       |> form("#player-name-form", %{player_name: "Luke Skywalker"})
       |> render_submit()
 
-    assert html =~ "Your Player Name: Luke Skywalker"
+    assert html =~ "Luke Skywalker"
   end
 
   describe "close game functionality" do

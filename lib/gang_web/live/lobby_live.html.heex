@@ -7,34 +7,71 @@
   </div>
   
 <!-- Player Name Input with Enhanced Styling -->
-  <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 mb-4 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-    <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-      <span class="text-ctp-mauve">👤</span> Your Player Name: {@player.name}
-    </h2>
-    <.form for={%{}} phx-submit="set_player_name" id="player-name-form">
-      <div class="flex items-center gap-4 justify-center">
-        <div class="flex-grow">
+  <div id="player-name-section" class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-6 mb-4 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" phx-hook="SetPlayerName">
+    <%= if @player.name != "" and not @editing_name do %>
+      <!-- Display Mode: Avatar + Name + Edit Button -->
+      <div class="flex items-center justify-center gap-4">
+        <img
+          src={Gang.Avatar.generate(@player.name)}
+          alt="Your avatar"
+          class="w-16 h-16 rounded-xl shadow-lg"
+        />
+        <span class="text-xl font-semibold text-ctp-text">{@player.name}</span>
+        <button
+          phx-click="edit_name"
+          class="ml-2 p-2 rounded-lg bg-ctp-surface0/50 hover:bg-ctp-surface0 text-ctp-subtext0 hover:text-ctp-text transition-all duration-200"
+          title="Edit name"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z">
+            </path>
+          </svg>
+        </button>
+      </div>
+    <% else %>
+      <!-- Edit Mode: Compact Input Form -->
+      <div class="flex items-center justify-center gap-4">
+        <%= if @player.name != "" do %>
+          <img
+            src={Gang.Avatar.generate(@player.name)}
+            alt="Your avatar"
+            class="w-12 h-12 rounded-lg shadow-lg"
+          />
+        <% end %>
+        <.form
+          for={%{}}
+          phx-submit="set_player_name"
+          phx-change="update_preview"
+          id="player-name-form"
+          class="flex items-center gap-2"
+        >
           <.input
             type="text"
             name="player_name"
             placeholder="Enter Your Name"
             value={@player.name}
             id="player-name-input"
-            phx-hook="SetPlayerName"
             required
-            class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-mauve transition-colors duration-300"
+            class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-mauve transition-colors duration-300 w-48"
           />
-        </div>
-        <div>
           <.button
             type="submit"
-            class="bg-ctp-mauve hover:bg-ctp-pink transition-colors duration-300 transform hover:scale-105"
+            class="bg-ctp-mauve hover:bg-ctp-pink transition-colors duration-300 px-3 py-2 text-sm"
           >
             Save
           </.button>
-        </div>
+          <%= if @player.name != "" do %>
+            <button
+              type="button"
+              phx-click="cancel_edit"
+              class="bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-subtext0 hover:text-ctp-text transition-colors duration-300 px-3 py-2 text-sm rounded-md"
+            >
+              Cancel
+            </button>
+          <% end %>
+        </.form>
       </div>
-    </.form>
+    <% end %>
   </div>
 
   <div :if={@player.name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-4">

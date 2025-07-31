@@ -29,7 +29,10 @@ const Hooks = {
       const savedName = localStorage.getItem("player_name");
       const savedId = localStorage.getItem("player_id");
       if (savedName && savedId) {
-        this.el.value = savedName;
+        const input = this.el.querySelector('input[name="player_name"]');
+        if (input) {
+          input.value = savedName;
+        }
         // Push the saved name and ID to the server
         this.pushEvent("restore_player_info", {
           player_name: savedName,
