@@ -336,12 +336,12 @@ defmodule GangWeb.GameLive do
       <%= if length(@game.players) > 0 do %>
         <div class="mt-4">
           <h3 class="text-sm font-medium text-ctp-subtext0 mb-2">Current Players:</h3>
-          <div class="flex flex-wrap justify-center gap-2">
+          <div class="flex flex-wrap justify-center gap-4">
             <%= for player <- @game.players do %>
-              <span class="px-2 py-1 bg-ctp-surface0 text-ctp-text rounded text-sm flex items-center gap-1">
-                <img src={player.avatar} alt="avatar" class="w-4 h-4 rounded" />
-                {player.name}
-              </span>
+              <div class="bg-ctp-surface0 text-ctp-text rounded-lg p-4 flex flex-col items-center gap-3">
+                <img src={player.avatar} alt="avatar" class="w-16 h-16 rounded-xl" />
+                <span class="text-sm font-medium">{player.name}</span>
+              </div>
             <% end %>
           </div>
         </div>
@@ -582,9 +582,12 @@ defmodule GangWeb.GameLive do
       @is_current && "ring-2 ring-ctp-lavender"
     ]}>
       <div class="flex justify-between items-center mb-1">
-        <h3 class="text-sm font-medium text-ctp-text truncate flex-1">
-          {@player.name}
-        </h3>
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <img src={@player.avatar} alt="avatar" class="w-10 h-10 rounded-lg flex-shrink-0" />
+          <h3 class="text-sm font-medium text-ctp-text truncate">
+            {@player.name}
+          </h3>
+        </div>
         <span class={[
           "px-1 py-1 text-xs rounded-full ml-1",
           (@player.connected && "bg-ctp-green animate-pulse") ||

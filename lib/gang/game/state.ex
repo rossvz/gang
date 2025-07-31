@@ -412,6 +412,22 @@ defmodule Gang.Game.State do
   end
 
   @doc """
+  Updates a player's information (name and avatar) when they rejoin.
+  """
+  def update_player_info(state, new_player) do
+    updated_players =
+      Enum.map(state.players, fn player ->
+        if player.id == new_player.id do
+          %{player | name: new_player.name, avatar: new_player.avatar}
+        else
+          player
+        end
+      end)
+
+    %{state | players: updated_players, last_active: DateTime.utc_now()}
+  end
+
+  @doc """
   Deals cards to all players from the given deck.
   Returns a tuple of {updated_players, remaining_deck}.
   """

@@ -51,6 +51,13 @@ defmodule Gang.Game do
     GenServer.call(via_tuple(code), {:update_connection, player_id, connected})
   end
 
+  @doc """
+  Updates a player's information (name and avatar) when they rejoin.
+  """
+  def update_player_info(code, player) when is_binary(code) do
+    GenServer.call(via_tuple(code), {:update_player_info, player})
+  end
+
   def join(game_pid, %Player{} = player) do
     GenServer.call(game_pid, {:join, player})
   end
@@ -178,6 +185,13 @@ defmodule Gang.Game do
   @impl true
   def handle_call({:update_connection, player_id, connected}, _from, state) do
     updated_state = State.update_player_connection(state, player_id, connected)
+    broadcast_update(updated_state)
+    {:reply, {:ok, updated_state}, updated_state}
+  end
+
+  @impl true
+  def handle_call({:update_player_info, player}, _from, state) do
+    updated_state = State.update_player_info(state, player)
     broadcast_update(updated_state)
     {:reply, {:ok, updated_state}, updated_state}
   end

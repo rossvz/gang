@@ -27,7 +27,8 @@ defmodule GangWeb.LobbyLive do
         player_id: player_id,
         show_error: false,
         error_message: "",
-        player: player
+        player: player,
+        editing_name: false
       )
       |> UserInfo.store_in_socket(player_name, player_id)
 
@@ -65,6 +66,23 @@ defmodule GangWeb.LobbyLive do
   end
 
   @impl true
+  def handle_event("edit_name", _params, socket) do
+    {:noreply, assign(socket, editing_name: true)}
+  end
+
+  @impl true
+  def handle_event("cancel_edit", _params, socket) do
+    {:noreply, assign(socket, editing_name: false)}
+  end
+
+  @impl true
+  def handle_event("update_preview", %{"player_name" => player_name}, socket) do
+    # Update the preview name and regenerate avatar but don't save it yet
+    updated_player = Player.update_name(socket.assigns.player, player_name)
+    {:noreply, assign(socket, player: updated_player)}
+  end
+
+  @impl true
   def handle_event("set_player_name", %{"player_name" => player_name}, socket) do
     final_player_id =
       case socket.assigns.player.id do
@@ -73,7 +91,12 @@ defmodule GangWeb.LobbyLive do
         id -> id
       end
 
-    {:noreply, UserInfo.update_user_info(socket, player_name, final_player_id)}
+    socket =
+      socket
+      |> UserInfo.update_user_info(player_name, final_player_id)
+      |> assign(editing_name: false)
+
+    {:noreply, socket}
   end
 
   def handle_event("restore_player_info", %{"player_name" => player_name, "player_id" => player_id}, socket) do
