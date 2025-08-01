@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Enable version updates for Elixir dependencies
+  - package-ecosystem: "mix"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "rossvz"
+    labels:
+      - "dependencies"
+      - "elixir"
+
+  # Enable version updates for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/assets"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "rossvz"
+    labels:
+      - "dependencies"
+      - "javascript"
