@@ -572,7 +572,7 @@ defmodule GangWeb.GameLive do
       <%= if @game.status in [:playing, :completed] && @player do %>
         <%= if @game.current_phase == :rank_chip_selection && @game.all_rank_chips_claimed? do %>
           <button
-            :if={@game.current_round != :river}
+            :if={@game.current_round != :river && @game.status != :completed}
             class="px-4 py-2 rounded-lg bg-ctp-blue hover:bg-ctp-sapphire text-ctp-base font-medium transition-colors"
             phx-click="continue"
           >
@@ -980,7 +980,6 @@ defmodule GangWeb.GameLive do
     |> Enum.filter(&(&1.color == current_color))
     |> Enum.map(& &1.rank)
   end
-
 
   # Helper function to format hand names with tie-breaker details
   defp format_hand_name(hand) do

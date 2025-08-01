@@ -5,12 +5,12 @@ defmodule GangWeb.CardUtils do
 
   @doc """
   Properly pluralizes rank names for display in hand descriptions.
-  
+
   Primary use case is converting singular rank names (from game data) to plural.
   Also handles already plural forms for backward compatibility.
-  
+
   ## Examples
-  
+
       iex> GangWeb.CardUtils.pluralize_rank("King")
       "Kings"
       
