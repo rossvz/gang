@@ -35,9 +35,9 @@
     <% else %>
       <!-- Edit Mode: Compact Input Form -->
       <div class="flex items-center justify-center gap-4">
-        <%= if @player.name != "" or @name_form[:player_name].value != "" do %>
+        <%= if @player.name != "" do %>
           <img
-            src={Gang.Avatar.generate(if @name_form[:player_name].value != "", do: @name_form[:player_name].value, else: @player.name)}
+            src={Gang.Avatar.generate(@player.name)}
             alt="Your avatar"
             class="w-12 h-12 rounded-lg shadow-lg"
           />
