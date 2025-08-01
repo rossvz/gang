@@ -29,7 +29,6 @@ defmodule GangWeb.LobbyLive do
         error_message: "",
         player: player,
         editing_name: false,
-        temp_name: "",
         name_form: to_form(%{"player_name" => player_name || ""})
       )
       |> UserInfo.store_in_socket(player_name, player_id)
@@ -70,21 +69,21 @@ defmodule GangWeb.LobbyLive do
   @impl true
   def handle_event("edit_name", _params, socket) do
     form_data = %{"player_name" => socket.assigns.player.name}
-    {:noreply, assign(socket, editing_name: true, temp_name: socket.assigns.player.name, name_form: to_form(form_data))}
+    {:noreply, assign(socket, editing_name: true, name_form: to_form(form_data))}
   end
 
   @impl true
   def handle_event("cancel_edit", _params, socket) do
     form_data = %{"player_name" => socket.assigns.player.name}
-    {:noreply, assign(socket, editing_name: false, temp_name: "", name_form: to_form(form_data))}
+    {:noreply, assign(socket, editing_name: false, name_form: to_form(form_data))}
   end
 
   @impl true
   def handle_event("update_preview", params, socket) do
-    # Only update temp_name for preview, don't change the actual player name yet
+    # Update form state for live preview, don't change the actual player name yet
     player_name = get_in(params, ["player_name"]) || ""
     form_data = %{"player_name" => player_name}
-    {:noreply, assign(socket, temp_name: player_name, name_form: to_form(form_data))}
+    {:noreply, assign(socket, name_form: to_form(form_data))}
   end
 
   @impl true
@@ -101,7 +100,7 @@ defmodule GangWeb.LobbyLive do
     socket =
       socket
       |> UserInfo.update_user_info(player_name, final_player_id)
-      |> assign(editing_name: false, temp_name: "", name_form: to_form(form_data))
+      |> assign(editing_name: false, name_form: to_form(form_data))
 
     {:noreply, socket}
   end
