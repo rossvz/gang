@@ -9,7 +9,8 @@ defmodule Gang.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      compilers: [:phoenix_live_view] ++ Mix.compilers()
     ]
   end
 
@@ -32,6 +33,8 @@ defmodule Gang.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:lazy_html, ">= 0.0.0", only: :test},
+      {:deps_changelog, "~> 0.3", only: :dev, runtime: false},
       {:styler, "~> 1.5"},
       {:phoenix, "~> 1.7.18"},
       {:phoenix_ecto, "~> 4.6"},
@@ -76,6 +79,16 @@ defmodule Gang.MixProject do
         "tailwind gang --minify",
         "esbuild gang --minify",
         "phx.digest"
+      ],
+      update: [
+        # Isolated processes/Mix runners seem to work best when shuffling deps
+        "cmd mix deps.changelog --before",
+        "cmd mix deps.update igniter",
+        "cmd mix igniter.upgrade --all",
+        "cmd mix deps.changelog --after",
+        fn _args ->
+          Mix.shell().info("Run `mix igniter.apply_upgrades igniter:old_version:new_version` to finish igniter update!")
+        end
       ]
     ]
   end

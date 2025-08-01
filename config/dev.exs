@@ -83,7 +83,8 @@ config :phoenix_live_view,
   # Enable helpful, but potentially expensive runtime checks
   # different ports.
 
-  enable_expensive_runtime_checks: true
+  enable_expensive_runtime_checks: true,
+  debug_attributes: true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

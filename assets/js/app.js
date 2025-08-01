@@ -21,6 +21,7 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
+import { hooks as colocatedHooks } from "phoenix-colocated/gang";
 
 const Hooks = {
   SetPlayerName: {
@@ -93,7 +94,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
       player_id: localStorage.getItem("player_id") || "",
     };
   },
-  hooks: Hooks,
+  hooks: { ...Hooks, ...colocatedHooks },
 });
 
 // Chat functionality
