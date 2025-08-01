@@ -48,28 +48,34 @@ const Hooks = {
   },
   Clipboard: {
     mounted() {
-      this.el.addEventListener("click", e => {
+      this.el.addEventListener("click", (e) => {
         const textToCopy = this.el.dataset.clipboardText;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          console.log("Copied to clipboard: ", textToCopy);
-          // Optional: Add feedback to the user, like changing the icon or showing a tooltip
-        }).catch(err => {
-          console.error("Failed to copy: ", err);
-        });
+        navigator.clipboard
+          .writeText(textToCopy)
+          .then(() => {
+            console.log("Copied to clipboard: ", textToCopy);
+            // Optional: Add feedback to the user, like changing the icon or showing a tooltip
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+          });
       });
 
       // Listen for the server event
-      this.handleEvent("copy_to_clipboard", ({text}) => {
-        navigator.clipboard.writeText(text).then(() => {
-          console.log("Copied share link to clipboard: ", text);
-          // Optional: Provide user feedback (e.g., show a temporary message)
-          this.el.focus(); // Briefly focus the button for visual feedback
-          // You might want to add a small temporary text indicator like "Copied!" next to the button
-        }).catch(err => {
-          console.error("Failed to copy share link: ", err);
-        });
-      })
-    }
+      this.handleEvent("copy_to_clipboard", ({ text }) => {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            console.log("Copied share link to clipboard: ", text);
+            // Optional: Provide user feedback (e.g., show a temporary message)
+            this.el.focus(); // Briefly focus the button for visual feedback
+            // You might want to add a small temporary text indicator like "Copied!" next to the button
+          })
+          .catch((err) => {
+            console.error("Failed to copy share link: ", err);
+          });
+      });
+    },
   },
 };
 
@@ -91,13 +97,6 @@ let liveSocket = new LiveSocket("/live", Socket, {
 });
 
 // Chat functionality
-window.addEventListener("phx:clear_chat_input", () => {
-  const chatInputs = document.querySelectorAll('input[name="message"]');
-  chatInputs.forEach(input => {
-    input.value = "";
-  });
-});
-
 window.addEventListener("phx:scroll_chat_to_bottom", () => {
   // Use requestAnimationFrame for better timing with browser rendering
   requestAnimationFrame(() => {
@@ -107,36 +106,25 @@ window.addEventListener("phx:scroll_chat_to_bottom", () => {
         if (element) {
           // Try multiple approaches for reliability
           element.scrollTop = element.scrollHeight;
-          
-          // Fallback: scroll to last child element if available
+
           const lastMessage = element.lastElementChild;
           if (lastMessage) {
-            lastMessage.scrollIntoView({ behavior: 'instant', block: 'end' });
+            lastMessage.scrollIntoView({ behavior: "instant", block: "end" });
           }
-          
-          // Final fallback: force scroll with a bit more delay
+
           setTimeout(() => {
             element.scrollTop = element.scrollHeight;
           }, 10);
         }
       };
-      
-      // Scroll all possible chat containers with unique contexts
-      const containers = [
-        document.getElementById("chat-messages-desktop-waiting"),
-        document.getElementById("chat-messages-mobile-waiting"),  
-        document.getElementById("chat-messages-desktop-mobile"),
-        document.getElementById("chat-messages-mobile-mobile"),
-        document.getElementById("chat-messages-desktop-desktop"),
-        document.getElementById("chat-messages-mobile-desktop")
-      ];
-      
-      containers.forEach(container => {
-        if (container) {
-          scrollToBottom(container);
-        }
+
+      // Scroll all chat message containers using shared CSS class
+      const containers = document.querySelectorAll(".chat-messages");
+
+      containers.forEach((container) => {
+        scrollToBottom(container);
       });
-    }, 100); // Increased delay to 100ms for more reliability
+    }, 100);
   });
 });
 

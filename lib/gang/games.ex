@@ -293,14 +293,14 @@ defmodule Gang.Games do
   def send_chat_message(code, player_id, message) do
     if GameSupervisor.game_exists?(code) do
       result = Game.send_chat_message(code, player_id, message)
-      
+
       case result do
         {:ok, _state} ->
           # Broadcast the updated game state to all players
           {:ok, updated_game} = get_game(code)
           PubSub.broadcast(Gang.PubSub, "game:#{code}", {:game_updated, updated_game})
           result
-        
+
         error ->
           error
       end

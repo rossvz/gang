@@ -30,10 +30,6 @@
   <% else %>
     <.waiting_room game={@game} />
     <!-- Chat Panel for Waiting Room -->
-    <ChatComponents.chat_panel 
-      chat_collapsed={Map.get(assigns, :chat_collapsed, false)} 
-      messages={Map.get(@game, :chat_messages, [])}
-      context="waiting"
-    />
+    <ChatComponents.chat_panel messages={Map.get(@game, :chat_messages, [])} chat_form={@chat_form} context="waiting" />
   <% end %>
 </div>

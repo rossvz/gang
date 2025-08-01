@@ -448,15 +448,15 @@ defmodule Gang.Game.State do
   def add_chat_message(state, player_id, message) do
     # Find the player to get their info
     player = Enum.find(state.players, &(&1.id == player_id))
-    
+
     if player do
       chat_message = ChatMessage.new(player_id, player.name, player.avatar, message)
-      
+
       # Add new message to the end and keep only the last 50 messages
-      updated_messages = 
-        (state.chat_messages ++ [chat_message])
-        |> Enum.take(-50) # Take the last 50 messages
-      
+      updated_messages = Enum.take(state.chat_messages ++ [chat_message], -50)
+
+      # Take the last 50 messages
+
       %{state | chat_messages: updated_messages, last_active: DateTime.utc_now()}
     else
       state

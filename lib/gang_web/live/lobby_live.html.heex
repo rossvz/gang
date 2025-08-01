@@ -7,7 +7,11 @@
   </div>
   
 <!-- Player Name Input with Enhanced Styling -->
-  <div id="player-name-section" class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-6 mb-4 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" phx-hook="SetPlayerName">
+  <div
+    id="player-name-section"
+    class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-6 mb-4 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+    phx-hook="SetPlayerName"
+  >
     <%= if @player.name != "" and not @editing_name do %>
       <!-- Display Mode: Avatar + Name + Edit Button -->
       <div class="flex items-center justify-center gap-4">
