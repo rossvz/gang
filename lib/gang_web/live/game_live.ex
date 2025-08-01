@@ -6,6 +6,7 @@ defmodule GangWeb.GameLive do
   alias Gang.Game.Player
   alias Gang.Games
   alias GangWeb.CardComponents
+  alias GangWeb.CardUtils
   alias GangWeb.ChatComponents
   alias GangWeb.UserInfo
 
@@ -267,10 +268,10 @@ defmodule GangWeb.GameLive do
   # Helper to create mock evaluated hands for all players
   defp create_mock_evaluated_hands(players) do
     mock_hands = [
-      {:pair, [], %{pair_rank: "Kings", kicker: "Ace"}},
+      {:pair, [], %{pair_rank: "King", kicker: "Ace"}},
       {:flush, [], %{high_card: "Ace"}},
       {:high_card, [], %{high_card: "Queen"}},
-      {:two_pair, [], %{high_pair: "Jacks", low_pair: "8", kicker: "King"}},
+      {:two_pair, [], %{high_pair: "Jack", low_pair: "8", kicker: "King"}},
       {:straight, [], %{high_card: "10"}}
     ]
 
@@ -980,6 +981,7 @@ defmodule GangWeb.GameLive do
     |> Enum.map(& &1.rank)
   end
 
+
   # Helper function to format hand names with tie-breaker details
   defp format_hand_name(hand) do
     case hand do
@@ -990,10 +992,10 @@ defmodule GangWeb.GameLive do
         "Straight Flush (#{high} high)"
 
       {:four_of_a_kind, _cards, %{four_rank: rank, kicker: kicker}} ->
-        "Four #{rank}s (#{kicker} kicker)"
+        "Four #{CardUtils.pluralize_rank(rank)} (#{kicker} kicker)"
 
       {:full_house, _cards, %{three_rank: three, pair_rank: pair}} ->
-        "Full House (#{three}s over #{pair}s)"
+        "Full House (#{CardUtils.pluralize_rank(three)} over #{CardUtils.pluralize_rank(pair)})"
 
       {:flush, _cards, %{high_card: high}} ->
         "Flush (#{high} high)"
@@ -1002,13 +1004,13 @@ defmodule GangWeb.GameLive do
         "Straight (#{high} high)"
 
       {:three_of_a_kind, _cards, %{three_rank: rank, kicker: kicker}} ->
-        "Three #{rank}s (#{kicker} kicker)"
+        "Three #{CardUtils.pluralize_rank(rank)} (#{kicker} kicker)"
 
       {:two_pair, _cards, %{high_pair: high, low_pair: low, kicker: kicker}} ->
-        "Two Pair (#{high}s and #{low}s, #{kicker} kicker)"
+        "Two Pair (#{CardUtils.pluralize_rank(high)} and #{CardUtils.pluralize_rank(low)}, #{kicker} kicker)"
 
       {:pair, _cards, %{pair_rank: pair, kicker: kicker}} ->
-        "Pair of #{pair}s (#{kicker} kicker)"
+        "Pair of #{CardUtils.pluralize_rank(pair)} (#{kicker} kicker)"
 
       {:high_card, _cards, %{high_card: high}} ->
         "#{high} High"
