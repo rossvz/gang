@@ -91,7 +91,12 @@ defmodule GangWeb.ChatComponents do
           
     <!-- Chat Input -->
           <div class="p-3 border-t border-ctp-surface0/10">
-            <.form for={@chat_form} phx-submit="send_chat_message" phx-change="chat_form_change" class="flex space-x-2">
+            <.form
+              for={@chat_form}
+              phx-submit="send_chat_message"
+              phx-change="chat_form_change"
+              class="flex space-x-2"
+            >
               <input
                 name="message"
                 type="text"
@@ -173,16 +178,21 @@ defmodule GangWeb.ChatComponents do
         
     <!-- Chat Input -->
         <div class="p-3 border-t border-ctp-surface0/10">
-          <.form for={@chat_form} phx-submit="send_chat_message" phx-change="chat_form_change" class="flex space-x-2">
-              <input
-                name="message"
-                type="text"
-                value={@chat_form.data["message"]}
-                placeholder="Type a message..."
-                maxlength="140"
-                class="flex-1 bg-ctp-surface0/20 backdrop-blur-sm border border-ctp-surface1/10 rounded-lg px-3 py-2 text-sm text-ctp-text placeholder-ctp-subtext0 focus:outline-none focus:ring-2 focus:ring-ctp-lavender/50 focus:border-ctp-lavender/50"
-                required
-              />
+          <.form
+            for={@chat_form}
+            phx-submit="send_chat_message"
+            phx-change="chat_form_change"
+            class="flex space-x-2"
+          >
+            <input
+              name="message"
+              type="text"
+              value={@chat_form.data["message"]}
+              placeholder="Type a message..."
+              maxlength="140"
+              class="flex-1 bg-ctp-surface0/20 backdrop-blur-sm border border-ctp-surface1/10 rounded-lg px-3 py-2 text-sm text-ctp-text placeholder-ctp-subtext0 focus:outline-none focus:ring-2 focus:ring-ctp-lavender/50 focus:border-ctp-lavender/50"
+              required
+            />
             <button
               type="submit"
               class="bg-ctp-lavender/80 hover:bg-ctp-lavender text-ctp-base rounded-lg px-3 py-2 text-sm font-medium transition-colors backdrop-blur-sm"
@@ -197,13 +207,15 @@ defmodule GangWeb.ChatComponents do
   end
 
   # LiveView.JS helper functions for chat show/hide
-  defp show_chat() do
-    JS.hide(to: ".chat-collapsed")
+  defp show_chat do
+    [to: ".chat-collapsed"]
+    |> JS.hide()
     |> JS.show(to: ".chat-expanded")
   end
 
-  defp hide_chat() do
-    JS.hide(to: ".chat-expanded")
+  defp hide_chat do
+    [to: ".chat-expanded"]
+    |> JS.hide()
     |> JS.show(to: ".chat-collapsed")
   end
 

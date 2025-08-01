@@ -441,9 +441,12 @@ defmodule Gang.Game.State do
     end)
   end
 
+  # Maximum number of chat messages to keep in memory
+  @max_chat_messages 50
+
   @doc """
   Adds a chat message to the game state.
-  Keeps only the last 50 messages to prevent memory growth.
+  Keeps only the last #{@max_chat_messages} messages to prevent memory growth.
   """
   def add_chat_message(state, player_id, message) do
     # Find the player to get their info
@@ -452,10 +455,9 @@ defmodule Gang.Game.State do
     if player do
       chat_message = ChatMessage.new(player_id, player.name, player.avatar, message)
 
-      # Add new message to the end and keep only the last 50 messages
-      updated_messages = Enum.take(state.chat_messages ++ [chat_message], -50)
-
-      # Take the last 50 messages
+      # Add new message to the end and enforce memory limit
+      # Keep messages in chronological order (oldest first)
+      updated_messages = Enum.take(state.chat_messages ++ [chat_message], -@max_chat_messages)
 
       %{state | chat_messages: updated_messages, last_active: DateTime.utc_now()}
     else

@@ -191,8 +191,11 @@ defmodule GangWeb.GameLive do
           |> push_event("scroll_chat_to_bottom", %{})
           |> then(&{:noreply, &1})
 
-        {:error, reason} ->
-          {:noreply, put_flash(socket, :error, "Failed to send message: #{inspect(reason)}")}
+        {:error, :game_not_found} ->
+          {:noreply, put_flash(socket, :error, "Game no longer exists. Please refresh the page.")}
+
+        {:error, _reason} ->
+          {:noreply, put_flash(socket, :error, "Unable to send message. Please try again.")}
       end
     else
       {:noreply, socket}
@@ -852,7 +855,11 @@ defmodule GangWeb.GameLive do
       <% end %>
       
     <!-- Chat Panel for Mobile -->
-      <ChatComponents.chat_panel messages={Map.get(@game, :chat_messages, [])} chat_form={@chat_form} context="mobile" />
+      <ChatComponents.chat_panel
+        messages={Map.get(@game, :chat_messages, [])}
+        chat_form={Map.get(assigns, :chat_form, to_form(%{"message" => ""}))}
+        context="mobile"
+      />
     </div>
     """
   end
@@ -868,7 +875,11 @@ defmodule GangWeb.GameLive do
         selected_rank_chip={@selected_rank_chip}
       />
       <.circular_players players={@game.players} player_name={@player_name} game={@game} />
-      <ChatComponents.chat_panel messages={Map.get(@game, :chat_messages, [])} chat_form={@chat_form} context="desktop" />
+      <ChatComponents.chat_panel
+        messages={Map.get(@game, :chat_messages, [])}
+        chat_form={Map.get(assigns, :chat_form, to_form(%{"message" => ""}))}
+        context="desktop"
+      />
     </div>
     """
   end
