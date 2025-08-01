@@ -142,7 +142,7 @@ defmodule Gang.Game.StateTest do
       # Create updated player with new name
       updated_player_data = Player.new("Bob", "test-id")
       updated_state = State.update_player_info(state, updated_player_data)
-      
+
       updated_player = Enum.find(updated_state.players, &(&1.id == "test-id"))
 
       assert updated_player.name == "Bob"
@@ -155,21 +155,22 @@ defmodule Gang.Game.StateTest do
       state = State.new("TEST")
       player1 = Player.new("Alice", "id-1")
       player2 = Player.new("Bob", "id-2")
-      
-      state = state
-      |> State.add_player(player1)
-      |> State.add_player(player2)
+
+      state =
+        state
+        |> State.add_player(player1)
+        |> State.add_player(player2)
 
       # Update only player1's info
       updated_player_data = Player.new("Charlie", "id-1")
       updated_state = State.update_player_info(state, updated_player_data)
-      
+
       updated_player1 = Enum.find(updated_state.players, &(&1.id == "id-1"))
       unchanged_player2 = Enum.find(updated_state.players, &(&1.id == "id-2"))
 
       assert updated_player1.name == "Charlie"
       assert String.contains?(updated_player1.avatar, "seed=Charlie")
-      
+
       # Player 2 should remain unchanged
       assert unchanged_player2.name == "Bob"
       assert String.contains?(unchanged_player2.avatar, "seed=Bob")
@@ -181,12 +182,13 @@ defmodule Gang.Game.StateTest do
       state = State.add_player(state, player)
       original_last_active = state.last_active
 
-      Process.sleep(1)  # Ensure time difference
-      
+      # Ensure time difference
+      Process.sleep(1)
+
       updated_player_data = Player.new("Bob", "test-id")
       updated_state = State.update_player_info(state, updated_player_data)
 
-      assert DateTime.compare(updated_state.last_active, original_last_active) == :gt
+      assert DateTime.after?(updated_state.last_active, original_last_active)
     end
 
     test "handles non-existent player ID gracefully" do
@@ -197,7 +199,7 @@ defmodule Gang.Game.StateTest do
       # Try to update a player that doesn't exist
       non_existent_player = Player.new("Bob", "non-existent-id")
       updated_state = State.update_player_info(state, non_existent_player)
-      
+
       # State should remain unchanged except for last_active
       assert length(updated_state.players) == 1
       existing_player = hd(updated_state.players)

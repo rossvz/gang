@@ -6,6 +6,7 @@ defmodule GangWeb.GameLive do
   alias Gang.Game.Player
   alias Gang.Games
   alias GangWeb.CardComponents
+  alias GangWeb.ChatComponents
   alias GangWeb.UserInfo
 
   on_mount {GangWeb.ParamHandlers, :extract_query_params}
@@ -50,6 +51,7 @@ defmodule GangWeb.GameLive do
           |> assign(player_split: player_split)
           |> assign(show_hand_guide: false)
           |> assign(needs_player_info: !has_player_info)
+          |> assign(chat_form: to_form(%{"message" => ""}))
           |> UserInfo.store_in_socket(player_name, player_id)
 
         {:ok, socket}
@@ -170,6 +172,37 @@ defmodule GangWeb.GameLive do
   end
 
   @impl true
+  def handle_event("chat_form_change", params, socket) do
+    {:noreply, assign(socket, chat_form: to_form(params))}
+  end
+
+  @impl true
+  def handle_event("send_chat_message", %{"message" => message}, socket) do
+    # Only send non-empty messages
+    trimmed_message = String.trim(message)
+
+    # Check if player is properly identified
+    if trimmed_message != "" && socket.assigns.player_id do
+      case Games.send_chat_message(socket.assigns.game_id, socket.assigns.player_id, trimmed_message) do
+        {:ok, _state} ->
+          # Clear chat input and scroll to bottom after message is sent
+          socket
+          |> assign(chat_form: to_form(%{"message" => ""}))
+          |> push_event("scroll_chat_to_bottom", %{})
+          |> then(&{:noreply, &1})
+
+        {:error, :game_not_found} ->
+          {:noreply, put_flash(socket, :error, "Game no longer exists. Please refresh the page.")}
+
+        {:error, _reason} ->
+          {:noreply, put_flash(socket, :error, "Unable to send message. Please try again.")}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_event("reset_game", _params, socket) do
     Games.reset_game(socket.assigns.game_id)
     {:noreply, socket}
@@ -261,11 +294,25 @@ defmodule GangWeb.GameLive do
     player = if player_id, do: Enum.find(game.players, &(&1.id == player_id))
     player_split = split_players(game.players, player_id)
 
-    {:noreply,
-     socket
-     |> assign(game: game)
-     |> assign(player: player)
-     |> assign(player_split: player_split)}
+    # Check if a new chat message was added by comparing message counts
+    old_message_count = length(Map.get(socket.assigns.game, :chat_messages, []))
+    new_message_count = length(Map.get(game, :chat_messages, []))
+
+    socket =
+      socket
+      |> assign(game: game)
+      |> assign(player: player)
+      |> assign(player_split: player_split)
+
+    # Auto-scroll all clients when new message arrives
+    socket =
+      if new_message_count > old_message_count do
+        push_event(socket, "scroll_chat_to_bottom", %{})
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -806,6 +853,13 @@ defmodule GangWeb.GameLive do
           </div>
         </div>
       <% end %>
+      
+    <!-- Chat Panel for Mobile -->
+      <ChatComponents.chat_panel
+        messages={Map.get(@game, :chat_messages, [])}
+        chat_form={Map.get(assigns, :chat_form, to_form(%{"message" => ""}))}
+        context="mobile"
+      />
     </div>
     """
   end
@@ -821,6 +875,11 @@ defmodule GangWeb.GameLive do
         selected_rank_chip={@selected_rank_chip}
       />
       <.circular_players players={@game.players} player_name={@player_name} game={@game} />
+      <ChatComponents.chat_panel
+        messages={Map.get(@game, :chat_messages, [])}
+        chat_form={Map.get(assigns, :chat_form, to_form(%{"message" => ""}))}
+        context="desktop"
+      />
     </div>
     """
   end

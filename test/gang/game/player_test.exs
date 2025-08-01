@@ -9,7 +9,10 @@ defmodule Gang.Game.PlayerTest do
 
       assert player.name == "Alice"
       assert player.id == "test-id"
-      assert player.avatar == "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Alice&radius=30&backgroundColor=f5bde6,c6a0f6,ed8796,ee99a0,f5a97f,eed49f,a6da95,8bd5ca,91d7e3,7dc4e4,8aadf4,b7bdf8"
+
+      assert player.avatar ==
+               "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Alice&radius=30&backgroundColor=f5bde6,c6a0f6,ed8796,ee99a0,f5a97f,eed49f,a6da95,8bd5ca,91d7e3,7dc4e4,8aadf4,b7bdf8"
+
       assert player.connected == true
       assert player.cards == []
       assert player.rank_chips == []
@@ -21,8 +24,11 @@ defmodule Gang.Game.PlayerTest do
 
       assert player.name == "Bob"
       assert is_binary(player.id)
-      assert String.length(player.id) == 36  # UUID length
-      assert player.avatar == "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Bob&radius=30&backgroundColor=f5bde6,c6a0f6,ed8796,ee99a0,f5a97f,eed49f,a6da95,8bd5ca,91d7e3,7dc4e4,8aadf4,b7bdf8"
+      # UUID length
+      assert String.length(player.id) == 36
+
+      assert player.avatar ==
+               "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Bob&radius=30&backgroundColor=f5bde6,c6a0f6,ed8796,ee99a0,f5a97f,eed49f,a6da95,8bd5ca,91d7e3,7dc4e4,8aadf4,b7bdf8"
     end
   end
 
@@ -32,9 +38,12 @@ defmodule Gang.Game.PlayerTest do
       updated_player = Player.update_name(player, "Bob")
 
       assert updated_player.name == "Bob"
-      assert updated_player.id == "test-id"  # ID stays the same
-      assert updated_player.avatar == "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Bob&radius=30&backgroundColor=f5bde6,c6a0f6,ed8796,ee99a0,f5a97f,eed49f,a6da95,8bd5ca,91d7e3,7dc4e4,8aadf4,b7bdf8"
-      
+      # ID stays the same
+      assert updated_player.id == "test-id"
+
+      assert updated_player.avatar ==
+               "https://api.dicebear.com/9.x/fun-emoji/svg?seed=Bob&radius=30&backgroundColor=f5bde6,c6a0f6,ed8796,ee99a0,f5a97f,eed49f,a6da95,8bd5ca,91d7e3,7dc4e4,8aadf4,b7bdf8"
+
       # Other properties remain unchanged
       assert updated_player.connected == player.connected
       assert updated_player.cards == player.cards
@@ -57,11 +66,11 @@ defmodule Gang.Game.PlayerTest do
 
   describe "connect/1" do
     test "marks player as connected and updates activity" do
-      player = Player.new("Alice") |> Player.disconnect()
+      player = "Alice" |> Player.new() |> Player.disconnect()
       connected_player = Player.connect(player)
 
       assert connected_player.connected == true
-      assert DateTime.compare(connected_player.last_activity, player.last_activity) == :gt
+      assert DateTime.after?(connected_player.last_activity, player.last_activity)
     end
   end
 
@@ -78,10 +87,11 @@ defmodule Gang.Game.PlayerTest do
   describe "touch/1" do
     test "updates last activity timestamp" do
       player = Player.new("Alice")
-      Process.sleep(1)  # Ensure time difference
+      # Ensure time difference
+      Process.sleep(1)
       touched_player = Player.touch(player)
 
-      assert DateTime.compare(touched_player.last_activity, player.last_activity) == :gt
+      assert DateTime.after?(touched_player.last_activity, player.last_activity)
     end
   end
 end

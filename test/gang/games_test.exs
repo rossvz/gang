@@ -39,7 +39,8 @@ defmodule Gang.GamesTest do
       assert String.contains?(initial_player.avatar, "seed=Alice")
 
       # Rejoin with updated name (simulating name change in lobby)
-      updated_player = Player.new("Bob", "test-id")  # Same ID, different name
+      # Same ID, different name
+      updated_player = Player.new("Bob", "test-id")
       {:ok, _} = Games.join_game(code, updated_player)
       {:ok, updated_state} = Games.get_game(code)
 
@@ -58,7 +59,7 @@ defmodule Gang.GamesTest do
 
       # Join initially
       {:ok, _} = Games.join_game(code, player)
-      
+
       # Simulate disconnection
       Games.update_connection(code, player.id, false)
       {:ok, state} = Games.get_game(code)
@@ -107,11 +108,11 @@ defmodule Gang.GamesTest do
 
       # Should still have 2 players
       assert length(updated_state.players) == 2
-      
+
       # Player1 should be updated, Player2 unchanged
       updated_p1 = Enum.find(updated_state.players, &(&1.id == "id-1"))
       unchanged_p2 = Enum.find(updated_state.players, &(&1.id == "id-2"))
-      
+
       assert updated_p1.name == "UpdatedAlice"
       assert unchanged_p2.name == "Bob"
     end
