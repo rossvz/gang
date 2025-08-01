@@ -43,17 +43,16 @@
           />
         <% end %>
         <.form
-          for={%{}}
+          for={@name_form}
           phx-submit="set_player_name"
           phx-change="update_preview"
           id="player-name-form"
           class="flex items-center gap-2"
         >
           <.input
+            field={@name_form[:player_name]}
             type="text"
-            name="player_name"
             placeholder="Enter Your Name"
-            value={@player.name}
             id="player-name-input"
             required
             class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-mauve transition-colors duration-300 w-48"

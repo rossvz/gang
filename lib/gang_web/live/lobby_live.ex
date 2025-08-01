@@ -28,7 +28,8 @@ defmodule GangWeb.LobbyLive do
         show_error: false,
         error_message: "",
         player: player,
-        editing_name: false
+        editing_name: false,
+        name_form: to_form(%{"player_name" => player_name || ""})
       )
       |> UserInfo.store_in_socket(player_name, player_id)
 
@@ -67,23 +68,27 @@ defmodule GangWeb.LobbyLive do
 
   @impl true
   def handle_event("edit_name", _params, socket) do
-    {:noreply, assign(socket, editing_name: true)}
+    form_data = %{"player_name" => socket.assigns.player.name}
+    {:noreply, assign(socket, editing_name: true, name_form: to_form(form_data))}
   end
 
   @impl true
   def handle_event("cancel_edit", _params, socket) do
-    {:noreply, assign(socket, editing_name: false)}
+    form_data = %{"player_name" => socket.assigns.player.name}
+    {:noreply, assign(socket, editing_name: false, name_form: to_form(form_data))}
   end
 
   @impl true
-  def handle_event("update_preview", %{"player_name" => player_name}, socket) do
-    # Update the preview name and regenerate avatar but don't save it yet
-    updated_player = Player.update_name(socket.assigns.player, player_name)
-    {:noreply, assign(socket, player: updated_player)}
+  def handle_event("update_preview", params, socket) do
+    # Update form state for live preview, don't change the actual player name yet
+    player_name = get_in(params, ["player_name"]) || ""
+    form_data = %{"player_name" => player_name}
+    {:noreply, assign(socket, name_form: to_form(form_data))}
   end
 
   @impl true
-  def handle_event("set_player_name", %{"player_name" => player_name}, socket) do
+  def handle_event("set_player_name", params, socket) do
+    player_name = get_in(params, ["player_name"]) || ""
     final_player_id =
       case socket.assigns.player.id do
         nil -> Ecto.UUID.generate()
@@ -91,10 +96,11 @@ defmodule GangWeb.LobbyLive do
         id -> id
       end
 
+    form_data = %{"player_name" => player_name}
     socket =
       socket
       |> UserInfo.update_user_info(player_name, final_player_id)
-      |> assign(editing_name: false)
+      |> assign(editing_name: false, name_form: to_form(form_data))
 
     {:noreply, socket}
   end

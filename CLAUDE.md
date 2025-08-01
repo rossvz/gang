@@ -83,3 +83,9 @@ mix credo                        # Run static analysis (if installed)
 
 ### Current Branch Notes
 The `shareable-links` branch has uncommitted changes to styling files. Be aware of these when making UI changes.
+
+## Local Development Notes
+- This app runs on localhost:4090
+
+## AI Interaction Notes
+- I will run the mix phx.server command. You dont need to ever start the server
