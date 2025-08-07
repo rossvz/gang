@@ -36,7 +36,7 @@ defmodule Gang.MixProject do
       {:lazy_html, ">= 0.0.0", only: :test},
       {:deps_changelog, "~> 0.3", only: :dev, runtime: false},
       {:styler, "~> 1.5"},
-      {:phoenix, "~> 1.7.18"},
+      {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.6"},
       {:ecto_sql, "~> 3.13"},
       {:postgrex, ">= 0.0.0"},
