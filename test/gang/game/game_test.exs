@@ -64,7 +64,7 @@ defmodule Gang.GameTest do
       # Check that the game transitioned to evaluation round
       assert updated_state.current_round == :evaluation
       # Check that evaluated_hands field is populated
-      assert updated_state.evaluated_hands != nil
+      assert updated_state.evaluated_hands
       assert map_size(updated_state.evaluated_hands) == 2
 
       assert updated_state.vaults == 1

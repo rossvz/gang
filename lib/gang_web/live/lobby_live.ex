@@ -89,6 +89,7 @@ defmodule GangWeb.LobbyLive do
   @impl true
   def handle_event("set_player_name", params, socket) do
     player_name = get_in(params, ["player_name"]) || ""
+
     final_player_id =
       case socket.assigns.player.id do
         nil -> Ecto.UUID.generate()
@@ -97,6 +98,7 @@ defmodule GangWeb.LobbyLive do
       end
 
     form_data = %{"player_name" => player_name}
+
     socket =
       socket
       |> UserInfo.update_user_info(player_name, final_player_id)
