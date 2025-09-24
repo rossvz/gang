@@ -189,6 +189,7 @@ defmodule GangWeb.GameLive do
           # Clear chat input and scroll to bottom after message is sent
           socket
           |> assign(chat_form: to_form(%{"message" => ""}))
+          |> push_event("clear_chat_input", %{})
           |> push_event("scroll_chat_to_bottom", %{})
           |> then(&{:noreply, &1})
 

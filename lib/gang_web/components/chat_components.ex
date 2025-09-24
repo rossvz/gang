@@ -100,7 +100,6 @@ defmodule GangWeb.ChatComponents do
               <input
                 name="message"
                 type="text"
-                value={@chat_form.data["message"]}
                 placeholder="Type a message..."
                 maxlength="140"
                 class="flex-1 bg-ctp-surface0/20 backdrop-blur-sm border border-ctp-surface1/10 rounded-lg px-3 py-2 text-sm text-ctp-text placeholder-ctp-subtext0 focus:outline-none focus:ring-2 focus:ring-ctp-lavender/50 focus:border-ctp-lavender/50"
@@ -187,7 +186,6 @@ defmodule GangWeb.ChatComponents do
             <input
               name="message"
               type="text"
-              value={@chat_form.data["message"]}
               placeholder="Type a message..."
               maxlength="140"
               class="flex-1 bg-ctp-surface0/20 backdrop-blur-sm border border-ctp-surface1/10 rounded-lg px-3 py-2 text-sm text-ctp-text placeholder-ctp-subtext0 focus:outline-none focus:ring-2 focus:ring-ctp-lavender/50 focus:border-ctp-lavender/50"

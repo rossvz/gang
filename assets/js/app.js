@@ -129,6 +129,14 @@ window.addEventListener("phx:scroll_chat_to_bottom", () => {
   });
 });
 
+window.addEventListener("phx:clear_chat_input", () => {
+  // Clear all chat input fields
+  const chatInputs = document.querySelectorAll('input[name="message"]');
+  chatInputs.forEach((input) => {
+    input.value = "";
+  });
+});
+
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
