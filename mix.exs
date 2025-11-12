@@ -34,6 +34,7 @@ defmodule Gang.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:tidewave, "~> 0.5", only: [:dev]},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:deps_changelog, "~> 0.3", only: :dev, runtime: false},
       {:styler, "~> 1.5"},
