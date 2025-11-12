@@ -1,34 +1,102 @@
-<div class="max-w-3xl mx-auto px-4 py-4 bg-opacity-15 backdrop-blur-md min-h-screen">
-  <!-- Animated Header -->
-  <div class="text-center mb-4 transform hover:scale-105 transition-transform duration-300">
-    <h1 class="font-retro p-4 text-4xl md:text-5xl font-bold bg-gradient-to-r from-ctp-mauve via-ctp-red to-ctp-peach bg-clip-text text-transparent animate-gradient">
-      The Gang
-    </h1>
+<div class="max-w-5xl mx-auto px-4 py-8 min-h-screen">
+  <!-- Hero Banner Section -->
+  <div class="relative mb-12 overflow-hidden rounded-3xl bg-gradient-to-br from-ctp-surface0/60 via-ctp-surface1/40 to-ctp-surface0/60 border border-ctp-surface2/30 backdrop-blur-sm">
+    <!-- Decorative Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <!-- Card Suit Icons -->
+      <svg class="absolute top-4 left-8 w-16 h-16 text-ctp-red/10 rotate-12" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+      <svg class="absolute top-8 right-12 w-20 h-20 text-ctp-mauve/10 -rotate-6" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z" />
+      </svg>
+      <svg class="absolute bottom-6 left-16 w-14 h-14 text-ctp-peach/10 rotate-45" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z" />
+      </svg>
+      <svg class="absolute bottom-8 right-8 w-12 h-12 text-ctp-green/10 -rotate-12" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z" />
+      </svg>
+    </div>
+
+    <!-- Content -->
+    <div class="relative text-center py-12 px-6">
+      <!-- Card Stack Icon/Logo -->
+      <div class="flex justify-center mb-6">
+        <div class="relative">
+          <!-- Stacked Card Effect -->
+          <div class="absolute top-0 left-2 w-16 h-20 bg-ctp-surface2/40 rounded-lg transform rotate-12 blur-sm"></div>
+          <div class="absolute top-0 -left-2 w-16 h-20 bg-ctp-surface2/40 rounded-lg transform -rotate-12 blur-sm"></div>
+          <div class="relative w-16 h-20 bg-gradient-to-br from-ctp-mauve to-ctp-red rounded-lg flex items-center justify-center shadow-lg border border-ctp-surface2">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <h1 class="font-display text-6xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-ctp-mauve via-ctp-red to-ctp-peach bg-clip-text text-transparent animate-gradient mb-4">
+        The Gang
+      </h1>
+
+      <!-- Tagline with decorative dividers -->
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <div class="h-px w-12 bg-gradient-to-r from-transparent to-ctp-surface2"></div>
+        <p class="text-ctp-text text-lg font-medium">Cooperative Poker</p>
+        <div class="h-px w-12 bg-gradient-to-l from-transparent to-ctp-surface2"></div>
+      </div>
+
+      <!-- Feature Pills -->
+      <div class="flex flex-wrap justify-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ctp-surface1/50 border border-ctp-surface2/50 rounded-full text-xs font-medium text-ctp-subtext0">
+          <svg class="w-3.5 h-3.5 text-ctp-green" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+          </svg>
+          2-6 Players
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ctp-surface1/50 border border-ctp-surface2/50 rounded-full text-xs font-medium text-ctp-subtext0">
+          <svg class="w-3.5 h-3.5 text-ctp-blue" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+          </svg>
+          4 Rounds
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ctp-surface1/50 border border-ctp-surface2/50 rounded-full text-xs font-medium text-ctp-subtext0">
+          <svg class="w-3.5 h-3.5 text-ctp-yellow" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          Team Victory
+        </span>
+      </div>
+    </div>
   </div>
-  
-<!-- Player Name Input with Enhanced Styling -->
+
+  <!-- Player Identity Card -->
   <div
     id="player-name-section"
-    class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-6 mb-4 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+    class="bg-ctp-surface0/40 backdrop-blur-sm rounded-2xl border border-ctp-surface1/30 p-6 mb-8 max-w-md mx-auto"
     phx-hook="SetPlayerName"
   >
     <%= if @player.name != "" and not @editing_name do %>
       <!-- Display Mode: Avatar + Name + Edit Button -->
-      <div class="flex items-center justify-center gap-4">
-        <img
-          src={Gang.Avatar.generate(@player.name)}
-          alt="Your avatar"
-          class="w-16 h-16 rounded-xl shadow-lg"
-        />
-        <span class="text-xl font-semibold text-ctp-text">{@player.name}</span>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <img
+            src={Gang.Avatar.generate(@player.name)}
+            alt="Your avatar"
+            class="w-14 h-14 rounded-xl shadow-md ring-2 ring-ctp-surface2/50"
+          />
+          <div>
+            <p class="text-xs text-ctp-subtext0 uppercase tracking-wide font-medium">Playing as</p>
+            <p class="text-xl font-semibold text-ctp-text">{@player.name}</p>
+          </div>
+        </div>
         <button
           phx-click="edit_name"
-          class="ml-2 p-2 rounded-lg bg-ctp-surface0/50 hover:bg-ctp-surface0 text-ctp-subtext0 hover:text-ctp-text transition-all duration-200"
+          class="p-2.5 rounded-lg bg-ctp-surface1/50 hover:bg-ctp-surface2/50 text-ctp-subtext0 hover:text-ctp-text transition-all duration-200"
           title="Edit name"
         >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z">
-            </path>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
           </svg>
         </button>
       </div>
@@ -77,160 +145,229 @@
     <% end %>
   </div>
 
-  <div :if={@player.name != ""} class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <!-- Primary Actions -->
+  <div :if={@player.name != ""} class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
     <!-- Create Game Card -->
-    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-      <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-        <span class="text-ctp-green">🎮</span> Create New Game
-      </h2>
+    <div class="group bg-gradient-to-br from-ctp-green/10 to-ctp-teal/5 border-2 border-ctp-green/30 hover:border-ctp-green/50 rounded-2xl p-8 transition-all duration-300 hover:shadow-lg hover:shadow-ctp-green/10">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="p-3 bg-ctp-green/20 rounded-xl group-hover:bg-ctp-green/30 transition-colors">
+          <svg class="w-7 h-7 text-ctp-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold text-ctp-text mb-2">Create New Game</h2>
+          <p class="text-ctp-subtext0 text-sm">Start a fresh game and invite your friends to join</p>
+        </div>
+      </div>
       <.form for={%{}} phx-submit="create_game">
         <.button
-          class="w-full bg-ctp-green hover:bg-ctp-teal transition-colors duration-300 transform hover:scale-105"
+          class="w-full bg-ctp-green hover:bg-ctp-teal transition-all duration-300 shadow-md hover:shadow-lg"
           disabled={@player.name == ""}
         >
-          Create Game
+          <span class="flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+            Create Game
+          </span>
         </.button>
       </.form>
     </div>
-    
-<!-- Join Game Card -->
-    <div
-      :if={@player.name != ""}
-      class="bg-ctp-mantle/80 bg-opacity-10 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 p-8 transform hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-    >
-      <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-        <span class="text-ctp-blue">🤝</span> Join Existing Game
-      </h2>
+
+    <!-- Join Game Card -->
+    <div class="group bg-gradient-to-br from-ctp-blue/10 to-ctp-sapphire/5 border-2 border-ctp-blue/30 hover:border-ctp-blue/50 rounded-2xl p-8 transition-all duration-300 hover:shadow-lg hover:shadow-ctp-blue/10">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="p-3 bg-ctp-blue/20 rounded-xl group-hover:bg-ctp-blue/30 transition-colors">
+          <svg class="w-7 h-7 text-ctp-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-2xl font-bold text-ctp-text mb-2">Join Game</h2>
+          <p class="text-ctp-subtext0 text-sm">Enter a 4-character code to join an existing game</p>
+        </div>
+      </div>
       <.form for={%{}} phx-submit="join_game" phx-change="validate_join">
         <div class="mb-4">
           <.input
             type="text"
             name="game_code"
-            placeholder="Game Code"
+            placeholder="Enter Game Code"
             value={@game_code}
             required
-            class="bg-ctp-base/50 border-ctp-surface0 focus:border-ctp-blue transition-colors duration-300"
+            class="bg-ctp-base/50 border-ctp-surface1 focus:border-ctp-blue focus:ring-2 focus:ring-ctp-blue/20 transition-all duration-300 text-center text-lg font-mono tracking-widest uppercase"
           />
         </div>
         <.button
-          class="w-full bg-ctp-blue hover:bg-ctp-sapphire transition-colors duration-300 transform hover:scale-105"
+          class="w-full bg-ctp-blue hover:bg-ctp-sapphire transition-all duration-300 shadow-md hover:shadow-lg"
           disabled={@player.name == ""}
         >
-          Join Game
+          <span class="flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+            Join Game
+          </span>
         </.button>
       </.form>
     </div>
   </div>
   
-<!-- Active Games List with Enhanced Styling -->
-  <div :if={@player.name != ""} class="mt-6">
-    <h2 class="text-xl font-semibold mb-4 text-ctp-text flex items-center gap-2">
-      <span class="text-ctp-peach">🎲</span> Active Games
-    </h2>
-    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-xl shadow-xl shadow-ctp-crust/20 transform hover:shadow-2xl transition-all duration-300 overflow-x-auto">
-      <div class="min-w-full">
-        <table class="w-full table-auto">
-          <thead class="bg-ctp-surface0/50">
-            <tr>
-              <th class="px-2 md:px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
-                Game ID
+  <!-- Active Games Section -->
+  <div :if={@player.name != ""}>
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-ctp-peach/20 rounded-lg">
+          <svg class="w-6 h-6 text-ctp-peach" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-ctp-text">Active Games</h2>
+      </div>
+      <%= if !Enum.empty?(@games) do %>
+        <span class="px-3 py-1 bg-ctp-surface1/50 rounded-full text-sm text-ctp-subtext0">
+          {length(@games)} {if length(@games) == 1, do: "game", else: "games"}
+        </span>
+      <% end %>
+    </div>
+
+    <div class="bg-ctp-surface0/30 backdrop-blur-sm rounded-2xl border border-ctp-surface1/30 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-ctp-surface1/30">
+              <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold text-ctp-subtext0 uppercase tracking-wider">
+                Code
               </th>
-              <th class="px-2 md:px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold text-ctp-subtext0 uppercase tracking-wider">
                 Players
               </th>
-              <th class="px-2 md:px-6 py-4 text-left text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold text-ctp-subtext0 uppercase tracking-wider">
                 Status
               </th>
-              <th class="px-2 md:px-6 py-4 text-right text-xs font-medium text-ctp-subtext0 uppercase tracking-wider">
+              <th class="px-4 md:px-6 py-4 text-right text-xs font-semibold text-ctp-subtext0 uppercase tracking-wider">
+                Actions
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-ctp-surface0/50">
+          <tbody>
             <%= if Enum.empty?(@games) do %>
               <tr>
-                <td colspan="4" class="px-2 md:px-6 py-8 text-center text-ctp-subtext0">
-                  <p class="text-lg mb-2">No active games yet!</p>
-                  <p class="text-sm text-ctp-overlay0">Create one to start the fun 🎮</p>
+                <td colspan="4" class="px-4 md:px-6 py-16 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="p-4 bg-ctp-surface1/30 rounded-2xl">
+                      <svg class="w-12 h-12 text-ctp-overlay0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-lg font-semibold text-ctp-text mb-1">No active games</p>
+                      <p class="text-sm text-ctp-subtext0">Create a new game to get started</p>
+                    </div>
+                  </div>
                 </td>
               </tr>
             <% else %>
               <%= for %{status: status, players: players, code: game_id, owner_id: owner_id} <- @games do %>
-                <tr class="hover:bg-ctp-surface0/30 transition-colors duration-300">
-                  <td class="px-2 md:px-6 py-4 whitespace-nowrap text-ctp-text font-medium">
-                    {game_id}
+                <tr class="border-t border-ctp-surface1/20 hover:bg-ctp-surface1/20 transition-colors duration-200">
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <span class="font-mono text-lg font-bold text-ctp-text">{game_id}</span>
                   </td>
-                  <td class="px-2 md:px-6 py-4 whitespace-nowrap text-ctp-subtext0">
-                    <div class="flex items-center gap-1 md:gap-2">
-                      <span :if={length(players) > 0} class="flex -space-x-1 md:-space-x-2">
-                        <%= for player <- players do %>
-                          <img
-                            src={player.avatar}
-                            alt="avatar"
-                            class="w-4 md:w-6 h-4 md:h-6 rounded-full border-2 border-ctp-surface0"
-                          />
-                        <% end %>
-                      </span>
-                      <span class="text-xs md:text-sm">{length(players)} / 6</span>
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center gap-3">
+                      <%= if length(players) > 0 do %>
+                        <div class="flex -space-x-2">
+                          <%= for player <- Enum.take(players, 4) do %>
+                            <img
+                              src={player.avatar}
+                              alt={player.name}
+                              title={player.name}
+                              class="w-8 h-8 rounded-full border-2 border-ctp-base ring-1 ring-ctp-surface2"
+                            />
+                          <% end %>
+                          <%= if length(players) > 4 do %>
+                            <div class="w-8 h-8 rounded-full border-2 border-ctp-base bg-ctp-surface2 flex items-center justify-center">
+                              <span class="text-xs font-semibold text-ctp-text">+{length(players) - 4}</span>
+                            </div>
+                          <% end %>
+                        </div>
+                      <% end %>
+                      <span class="text-sm font-medium text-ctp-subtext0">{length(players)}/6</span>
                     </div>
                   </td>
-                  <td class="px-2 md:px-6 py-4 whitespace-nowrap">
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap">
                     <%= case status do %>
                       <% :waiting -> %>
-                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-yellow/20 text-ctp-yellow animate-pulse">
-                          ⌛ Waiting
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ctp-yellow/20 border border-ctp-yellow/30">
+                          <span class="w-2 h-2 bg-ctp-yellow rounded-full animate-pulse"></span>
+                          <span class="text-xs font-semibold text-ctp-yellow">Waiting</span>
                         </span>
                       <% :playing -> %>
-                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-green/20 text-ctp-green">
-                          🎮 In Progress
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ctp-green/20 border border-ctp-green/30">
+                          <span class="w-2 h-2 bg-ctp-green rounded-full"></span>
+                          <span class="text-xs font-semibold text-ctp-green">Playing</span>
                         </span>
                       <% :completed -> %>
-                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-blue/20 text-ctp-blue">
-                          🏆 Completed
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ctp-blue/20 border border-ctp-blue/30">
+                          <svg class="w-3 h-3 text-ctp-blue" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                          </svg>
+                          <span class="text-xs font-semibold text-ctp-blue">Complete</span>
                         </span>
                       <% _ -> %>
-                        <span class="px-2 md:px-3 py-1 inline-flex items-center gap-1 text-xs md:text-sm font-semibold rounded-full bg-ctp-overlay0/20 text-ctp-overlay0">
-                          ❓ Unknown
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ctp-overlay0/20 border border-ctp-overlay0/30">
+                          <span class="text-xs font-semibold text-ctp-overlay0">Unknown</span>
                         </span>
                     <% end %>
                   </td>
-                  <td class="px-2 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap text-right">
                     <%= if @player.name != "" do %>
                       <% is_player_in_game = Enum.any?(players, &(&1.id == @player.id)) %>
                       <% is_owner = owner_id == @player.id %>
-                      <div class="flex gap-2 justify-end">
+                      <div class="flex gap-2 justify-end items-center">
                         <.link
                           :if={is_player_in_game}
                           navigate={~p"/games/#{game_id}"}
-                          class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-blue/10 text-ctp-blue hover:bg-ctp-blue/20 transition-colors duration-300 text-xs md:text-sm"
+                          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-ctp-blue/20 hover:bg-ctp-blue/30 border border-ctp-blue/40 text-ctp-blue font-medium transition-all duration-200 text-sm"
                         >
-                          Rejoin <span class="text-base md:text-lg">🔄</span>
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span class="hidden md:inline">Rejoin</span>
                         </.link>
                         <.link
                           :if={status == :waiting && !is_player_in_game}
                           navigate={~p"/games/#{game_id}"}
-                          class="w-20 md:w-24 inline-flex justify-center items-center gap-1 px-2 md:px-4 py-2 rounded-lg bg-ctp-green/10 text-ctp-green hover:bg-ctp-green/20 transition-colors duration-300 text-xs md:text-sm"
+                          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-ctp-green/20 hover:bg-ctp-green/30 border border-ctp-green/40 text-ctp-green font-medium transition-all duration-200 text-sm"
                         >
-                          Join <span class="text-base md:text-lg">▶</span>
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span class="hidden md:inline">Join</span>
                         </.link>
                         <span
                           :if={status == :playing && !is_player_in_game}
-                          class="text-ctp-overlay0 text-xs"
+                          class="text-ctp-overlay0 text-xs italic"
                         >
-                          In Progress
+                          In progress
                         </span>
                         <button
                           :if={is_owner}
                           phx-click="close_game"
                           phx-value-game_code={game_id}
                           data-confirm="Are you sure you want to close this game? This action cannot be undone."
-                          class="w-16 md:w-20 inline-flex justify-center items-center gap-1 px-2 md:px-3 py-2 rounded-lg bg-ctp-red/10 text-ctp-red hover:bg-ctp-red/20 transition-colors duration-300 text-xs md:text-sm"
+                          class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-ctp-red/20 hover:bg-ctp-red/30 border border-ctp-red/40 text-ctp-red font-medium transition-all duration-200 text-sm"
                           title="Close Game (Owner Only)"
                         >
-                          Close <span class="text-base md:text-lg">✕</span>
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          <span class="hidden md:inline">Close</span>
                         </button>
                       </div>
                     <% else %>
-                      <span class="text-ctp-overlay0 text-xs">Enter Name</span>
+                      <span class="text-ctp-overlay0 text-xs italic">Enter name</span>
                     <% end %>
                   </td>
                 </tr>

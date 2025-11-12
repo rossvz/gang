@@ -41,8 +41,8 @@ module.exports = {
         "ctp-crust": "#11111b",
       },
       fontFamily: {
-        sans: ['Tomorrow', ...defaultTheme.fontFamily.sans],
-        retro: ['"Rubik 80s Fade"', 'cursive'],
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        display: ['"Space Grotesk"', ...defaultTheme.fontFamily.sans],
       },
       keyframes: {
         "fade-in-out-1": {

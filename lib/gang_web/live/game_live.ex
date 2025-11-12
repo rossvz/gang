@@ -366,33 +366,100 @@ defmodule GangWeb.GameLive do
 
   def waiting_room(assigns) do
     ~H"""
-    <div class="bg-ctp-mantle/80 backdrop-blur-sm rounded-lg shadow-lg shadow-ctp-crust/10 p-6 text-center">
-      <h2 class="text-xl font-semibold mb-4 text-ctp-text">Waiting for Players</h2>
-      <p class="mb-4 text-ctp-text flex items-center justify-center space-x-2">
-        <span>Share this game code with your friends:</span>
-        <span class="font-bold text-ctp-mauve">{@game.code}</span>
-      </p>
-      <p class="text-sm text-ctp-subtext0 mb-2">Players joined: {length(@game.players)}/6</p>
-      <p class="text-sm text-ctp-subtext1">
-        <%= if length(@game.players) < 3 do %>
-          Need at least {3 - length(@game.players)} more player(s) to start.
-        <% else %>
-          Ready to start the game!
-        <% end %>
-      </p>
-      
-    <!-- Show current players -->
-      <%= if length(@game.players) > 0 do %>
-        <div class="mt-4">
-          <h3 class="text-sm font-medium text-ctp-subtext0 mb-2">Current Players:</h3>
-          <div class="flex flex-wrap justify-center gap-4">
-            <%= for player <- @game.players do %>
-              <div class="bg-ctp-surface0 text-ctp-text rounded-lg p-4 flex flex-col items-center gap-3">
-                <img src={player.avatar} alt="avatar" class="w-16 h-16 rounded-xl" />
-                <span class="text-sm font-medium">{player.name}</span>
-              </div>
-            <% end %>
+    <div class="bg-ctp-surface0/40 backdrop-blur-sm rounded-2xl border border-ctp-surface1/30 p-8">
+      <!-- Game Code - Primary Focus -->
+      <div class="text-center mb-8">
+        <p class="text-sm text-ctp-subtext0 mb-3 uppercase tracking-wide font-medium">Game Code</p>
+        <div class="inline-flex items-center gap-3 bg-ctp-surface1/60 border-2 border-ctp-mauve/30 rounded-xl px-8 py-4">
+          <span class="font-mono text-4xl font-bold text-ctp-mauve tracking-wider">{@game.code}</span>
+          <button
+            id={"copy-code-#{@game.code}"}
+            phx-hook="Clipboard"
+            phx-click="copy_link"
+            phx-value-code={@game.code}
+            class="p-2 rounded-lg hover:bg-ctp-surface2/50 text-ctp-subtext0 hover:text-ctp-text transition-all"
+            title="Copy game link"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+        <p class="text-xs text-ctp-subtext0 mt-3">Share this code with friends to join</p>
+      </div>
+
+      <!-- Player Progress -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-sm font-medium text-ctp-subtext0">Players</span>
+          <span class="text-sm font-semibold text-ctp-text">{length(@game.players)}/6</span>
+        </div>
+        <!-- Progress Bar -->
+        <div class="relative w-full h-2 bg-ctp-surface1 rounded-full overflow-hidden">
+          <div
+            class={"absolute top-0 left-0 h-full rounded-full transition-all duration-500 #{if length(@game.players) >= 3, do: "bg-ctp-green", else: "bg-ctp-yellow"}"}
+            style={"width: #{min(length(@game.players) * 16.666, 100)}%"}
+          >
           </div>
+          <!-- Minimum marker at 3 players (50%) -->
+          <div class="absolute top-0 left-1/2 w-0.5 h-full bg-ctp-overlay0/50"></div>
+        </div>
+        <!-- Status Message -->
+        <div class="mt-3 text-center">
+          <%= if length(@game.players) >= 3 do %>
+            <div class="inline-flex items-center gap-2 text-ctp-green">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm font-medium">Ready to start!</span>
+            </div>
+          <% else %>
+            <div class="inline-flex items-center gap-2 text-ctp-yellow">
+              <svg class="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm font-medium">
+                Need {3 - length(@game.players)} more {if 3 - length(@game.players) == 1, do: "player", else: "players"}
+              </span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Players Grid -->
+      <%= if length(@game.players) > 0 do %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <%= for player <- @game.players do %>
+            <div class="flex flex-col items-center gap-2 p-3 bg-ctp-surface1/30 rounded-xl hover:bg-ctp-surface1/50 transition-colors">
+              <img
+                src={player.avatar}
+                alt={player.name}
+                class="w-16 h-16 rounded-xl ring-2 ring-ctp-surface2"
+              />
+              <span class="text-xs font-medium text-ctp-text truncate w-full text-center">
+                {player.name}
+              </span>
+            </div>
+          <% end %>
+          <!-- Empty slots -->
+          <%= for _i <- 1..max(0, 6 - length(@game.players)) do %>
+            <div class="flex flex-col items-center gap-2 p-3 bg-ctp-surface1/10 rounded-xl border-2 border-dashed border-ctp-surface1/30">
+              <div class="w-16 h-16 rounded-xl bg-ctp-surface1/20 flex items-center justify-center">
+                <svg class="w-8 h-8 text-ctp-overlay0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <span class="text-xs text-ctp-overlay0">Empty</span>
+            </div>
+          <% end %>
         </div>
       <% end %>
     </div>
