@@ -5,6 +5,7 @@ defmodule GangWeb.LobbyLive do
   alias Gang.Game.Player
   alias Gang.Games
   alias GangWeb.UserInfo
+  alias GangWeb.CardComponents
 
   @impl true
   def mount(params, session, socket) do
@@ -29,7 +30,8 @@ defmodule GangWeb.LobbyLive do
         error_message: "",
         player: player,
         editing_name: false,
-        name_form: to_form(%{"player_name" => player_name || ""})
+        name_form: to_form(%{"player_name" => player_name || ""}),
+        show_how_to_play: false
       )
       |> UserInfo.store_in_socket(player_name, player_id)
 
@@ -111,6 +113,11 @@ defmodule GangWeb.LobbyLive do
     updated_player = Player.new(player_name, player_id)
 
     {:noreply, assign(socket, player: updated_player)}
+  end
+
+  @impl true
+  def handle_event("toggle_how_to_play", _params, socket) do
+    {:noreply, assign(socket, show_how_to_play: !socket.assigns.show_how_to_play)}
   end
 
   @impl true

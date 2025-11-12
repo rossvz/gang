@@ -52,7 +52,7 @@
           <svg class="w-3.5 h-3.5 text-ctp-green" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
           </svg>
-          2-6 Players
+          3-6 Players
         </span>
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ctp-surface1/50 border border-ctp-surface2/50 rounded-full text-xs font-medium text-ctp-subtext0">
           <svg class="w-3.5 h-3.5 text-ctp-blue" fill="currentColor" viewBox="0 0 20 20">
@@ -69,6 +69,22 @@
       </div>
     </div>
   </div>
+
+  <!-- How to Play Button -->
+  <div class="flex justify-center mb-8">
+    <button
+      phx-click="toggle_how_to_play"
+      class="group inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-ctp-blue/20 to-ctp-sapphire/20 hover:from-ctp-blue/30 hover:to-ctp-sapphire/30 border-2 border-ctp-blue/40 hover:border-ctp-blue/60 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-ctp-blue/20"
+    >
+      <svg class="w-6 h-6 text-ctp-blue group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span class="text-lg font-semibold text-ctp-text">How to Play</span>
+    </button>
+  </div>
+
+  <!-- How to Play Modal -->
+  <CardComponents.how_to_play_modal :if={@show_how_to_play} />
 
   <!-- Player Identity Card -->
   <div
